@@ -7,12 +7,14 @@
 # 2) CSV table with MHC-I peptides (8-14 aminoacids, peptides_MHC-I.csv)
 # 3) CSV table with MHC-II peptides (15-20 aminoacids, peptides_MHC-II.csv)
 
-GISAID_ALLPROT_PATH=$(realpath $1)
-GISAID_ID=$2
-OUT_DIR=$(realpath $3)
+GISAID_ID=$1
+OUT_DIR=$(realpath $2)
 
-# cd to script directory and create output directory
+# Go to the script directory and load config file
 cd $(dirname $0)
+source ../config.bash
+
+# Create output directory
 mkdir -p $OUT_DIR
 
 # Extract viral proteome from GISAID

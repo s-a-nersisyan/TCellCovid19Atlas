@@ -17,9 +17,17 @@ source ../config.bash
 mkdir -p $OUT_DIR
 
 # Extract viral proteome from GISAID
-grep -iF -A 1 "$GISAID_ID" $GISAID_ALLPROT_PATH > $OUT_DIR/proteome.fasta
+if [ "$GISAID_ID" == "all" ]; then
+    cat $GISAID_ALLPROT_PATH > $OUT_DIR/proteome.fasta
+    # Generate 8-14-mers for HLA-I
+    python3 generate_unique_peptides.py $OUT_DIR/proteome.fasta "8,9,10,11,12,13,14" > $OUT_DIR/peptides_HLA-I.csv
+    # Generate 15-20-mers for HLA-II
+    python3 generate_unique_peptides.py $OUT_DIR/proteome.fasta "15,16,17,18,19,20" > $OUT_DIR/peptides_HLA-II.csv
 
-# Generate 8-14-mers for HLA-I
-python3 generate_peptides.py $OUT_DIR/proteome.fasta "8,9,10,11,12,13,14" > $OUT_DIR/peptides_HLA-I.csv
-# Generate 15-20-mers for HLA-II
-python3 generate_peptides.py $OUT_DIR/proteome.fasta "15,16,17,18,19,20" > $OUT_DIR/peptides_HLA-II.csv
+else
+    grep -iF -A 1 "$GISAID_ID" $GISAID_ALLPROT_PATH > $OUT_DIR/proteome.fasta
+    # Generate 8-14-mers for HLA-I
+    python3 generate_peptides.py $OUT_DIR/proteome.fasta "8,9,10,11,12,13,14" > $OUT_DIR/peptides_HLA-I.csv
+    # Generate 15-20-mers for HLA-II
+    python3 generate_peptides.py $OUT_DIR/proteome.fasta "15,16,17,18,19,20" > $OUT_DIR/peptides_HLA-II.csv
+fi

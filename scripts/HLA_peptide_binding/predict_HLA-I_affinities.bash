@@ -26,4 +26,4 @@ cat $HLA_I_ALLELES_FILE | \
 	parallel -j $NUM_PROC \
 	"netMHCpan -BA -p $OUT_DIR/peptides.txt -a {} > $OUT_DIR/raw_predictions/{}.txt"
 
-# TODO: merge results into a single table
+python3 aggregate_HLA-I_affinities.py $OUT_DIR/raw_predictions > $OUT_DIR/affinity_table.csv

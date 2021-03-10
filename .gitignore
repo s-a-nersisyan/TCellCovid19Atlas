@@ -131,3 +131,5 @@ dmypy.json
 # Custom .gitignore
 config.bash
 ./allprot
+.env
+db/postgresql_data/

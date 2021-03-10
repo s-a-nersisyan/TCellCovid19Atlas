@@ -1,5 +1,5 @@
 # Input:
-# 1) Path to CSV table with MHC-I peptides
+# 1) Path to CSV table with HLA-II peptides
 # 2) Number of processes
 # 2) Output directory
 # Output:
@@ -22,8 +22,8 @@ mkdir -p $OUT_DIR/raw_predictions
 # Select peptides from the first column and remove header
 cat $PEPTIDES_TABLE | cut -d "," -f 1 | tail -n +2 > $OUT_DIR/peptides.txt
 
-cat $HLA_I_ALLELES_FILE | \
+cat $HLA_II_ALLELES_FILE | \
 	parallel -j $NUM_PROC \
-	"netMHCpan -BA -p $OUT_DIR/peptides.txt -a {} > $OUT_DIR/raw_predictions/{}.txt"
+	"netMHCIIpan -BA -inptype 1 -f $OUT_DIR/peptides.txt -a {} > $OUT_DIR/raw_predictions/{}.txt"
 
 # TODO: merge results into a single table

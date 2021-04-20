@@ -36,3 +36,5 @@ mkdir -p $(pwd)/db/postgresql_data
 
 # This should be done manually (sudo is not working)
 sudo echo '{"iptables": false}' > /etc/docker/daemon.json
+
+sudo apt-get install tcsh, parallel

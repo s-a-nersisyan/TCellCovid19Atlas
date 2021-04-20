@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en">
+<body>
+	<h1>Welcome to the T cell COVID-19 Atlas!</h1>
+
+	The following SARS-CoV-2 variants are available:
+	<ul>
+	{% for i, row in lineages.iterrows() %}
+		<li><a href="{{ row['GISAID Accession ID'] }}"> {{ row['Lineage'] }}, GISAID accession: {{ row['GISAID Virus name'] }} ({{ row['GISAID Accession ID'] }})</a></li>
+	{% endfor %}
+	</ul>
+</body>
+</html>

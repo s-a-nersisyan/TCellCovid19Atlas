@@ -60,23 +60,10 @@ def protein_alignment_dict(ref_protein_dict, mut_protein_dict):
 
     return protein_alignment_dict
 
-def conversion(reference, alignment, direction=None):
-    forward = list()
-    backward = list()
 
-    gap_count = 0
-    for ind, nucl in enumerate(alignment):
-        if (nucl != "-"):
-            forward.append(ind)
-        else:
-            gap_count += 1
-        backward.append(ind - gap_count)
+def conversion(reference, alignment):
+    return [ind for ind, nucl in enumerate(alignment) if nucl != "-"]
 
-    if (direction == "forward"):
-        return forward
-    if (direction == "backward"):
-        return backward
-    return forward, backward
 
 ref_protein_dict = protein_dict(ref_fasta_path)
 mut_protein_dict = protein_dict(mut_fasta_path)
@@ -101,14 +88,15 @@ output_tb = pd.DataFrame(columns=[
     "mut_pep",
     "ref_aln_pep",
     "mut_aln_pep",
-    "ref_ind",
-    "mut_ind",
-    "aln_ind"
+    "ref_start",
+    "ref_end",
+    "mut_start",
+    "mut_end",
+    "aln_start",
+    "aln_end"
 ])
 
 for protein_name in protein_names:
-    print(protein_name)
-
     ref_tb = ref_pep_tb[
         ref_pep_tb["Protein"] == protein_name
     ]
@@ -122,39 +110,38 @@ for protein_name in protein_names:
     ref_tb = ref_tb.set_index("Peptide")
     mut_tb = mut_tb.set_index("Peptide")
 
-    for peptide in diff_pep:
-        start = ref_tb.loc[peptide]["Start"]
-        end = ref_tb.loc[peptide]["End"]
+    for ref_peptide in diff_pep:
+        ref_start = int(ref_tb.loc[ref_peptide]["Start"])
+        ref_end = int(ref_tb.loc[ref_peptide]["End"])
 
         ref_align, mut_align = alignments[protein_name]
-        fw = conversion(ref_protein_dict[protein_name], ref_align,
-                        direction="forward")
+        coord = conversion(ref_protein_dict[protein_name], ref_align)
+        aln_start, aln_end = coord[ref_start], coord[ref_end - 1] + 1
+        
+        ref_peptide_aln = ref_align[aln_start:aln_end]
+        mut_peptide_aln = mut_align[aln_start:aln_end]
 
-        mut_protein = mut_protein_dict[protein_name]
-        bw = conversion(mut_protein, mut_align,
-                        direction="backward")
+        mut_peptide = mut_peptide_aln.replace("-", "")
+        if mut_peptide in ref_tb.index:
+            mut_peptide = ""
+
+        if mut_peptide in mut_tb.index:
+            mut_start = int(mut_tb.loc[mut_peptide]["Start"])
+            mut_end = int(mut_tb.loc[mut_peptide]["End"])
+        else:
+            mut_start, mut_end = None, None
 
         output_tb.loc[len(output_tb)] = [
             protein_name,
-            peptide,
-            mut_protein[bw[fw[start]]:bw[fw[end - 1]] + 1],
-            ref_align[fw[start]:fw[end - 1] + 1],
-            mut_align[fw[start]:fw[end - 1] + 1],
-            "{}:{}".format(start, end),
-            "{}:{}".format(bw[fw[start]], bw[fw[end - 1]] + 1),
-            "{}:{}".format(fw[start], fw[end - 1] + 1)
+            ref_peptide, mut_peptide,
+            ref_peptide_aln, mut_peptide_aln,
+            ref_start, ref_end,
+            mut_start, mut_end,
+            aln_start, aln_end
         ]
 
-output_path = os.path.join(output_dir, "{}_{}/".format(
-    get_epi(ref_fasta_path),
-    get_epi(mut_fasta_path)
-))
-
-print(output_path)
-
-os.mkdir(output_path)
-ref_aln_fasta = open(os.path.join(output_path, "ref_aln.fasta"), "w")
-mut_aln_fasta = open(os.path.join(output_path, "mut_aln.fasta"), "w")
+ref_aln_fasta = open(os.path.join(output_dir, "ref_aln.fasta"), "w")
+mut_aln_fasta = open(os.path.join(output_dir, "mut_aln.fasta"), "w")
 
 for protein_name in alignments:
     ref_aln_fasta.write(">" + protein_name + "\n")
@@ -162,4 +149,4 @@ for protein_name in alignments:
     mut_aln_fasta.write(">" + protein_name + "\n")
     mut_aln_fasta.write(alignments[protein_name][1] + "\n")
 
-output_tb.to_csv(os.path.join(output_path, "diff.csv"), index=None, sep=",")
+output_tb.to_csv(os.path.join(output_dir, "diff.csv"), index=None, sep=",")

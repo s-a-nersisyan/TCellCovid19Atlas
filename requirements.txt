@@ -4,3 +4,6 @@ Flask-SQLAlchemy
 psycopg2
 pandas
 numpy
+tqdm
+biopython
+natsort

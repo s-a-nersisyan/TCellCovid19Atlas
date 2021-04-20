@@ -1,7 +1,4 @@
-import pandas as pd
-import tqdm
 import sys
-import os
 
 
 # Path to FASTA file with viral proteome

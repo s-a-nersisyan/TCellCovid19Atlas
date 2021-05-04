@@ -14,14 +14,14 @@
           <h1 id="Summary">Summary</h1>
     
           {% if not allele %}
-            {% set total_mut_num = mut.shape[0] %}
+            {% set total_mut_num = mut_df.shape[0] %}
             <p>This strain contains {{total_mut_num}} protein-levelmutations:</p>
             <ul>
               {% for protein in proteins %}
-                {% set mut_num = mut[mut["Protein"] == protein].shape[0] %}
+                {% set mut_num = mut_df[mut_df["Protein"] == protein].shape[0] %}
                 {% set mutations = "" %}
-                {% set mut_df = mut[mut["Protein"] == protein]["Mutation"] %}
-                <li>{{ mut_num }} mutations in {{ protein }} protein: {{ mut_df|join(", ")}}</li>
+                {% set mut_protein_df = mut_df[mut_df["Protein"] == protein]["Mutation"] %}
+                <li>{{ mut_num }} mutations in {{ protein }} protein: {{ mut_protein_df|join(", ")}}</li>
               {% endfor %}
             </ul>
             <h2>Total numbers of HLA-peptide interactions affected by mutations:</h2>

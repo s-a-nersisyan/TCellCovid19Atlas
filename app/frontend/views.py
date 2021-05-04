@@ -22,7 +22,7 @@ def show_report_page(gisaid_id):
     
     # Load report
     df = pd.read_csv("{}/{}/report.csv".format(app.config["PIPELINE_PATH"], gisaid_id))
-    mut = pd.read_csv("{}/{}/mutations.csv".format(app.config["PIPELINE_PATH"], gisaid_id))
+    mut_df = pd.read_csv("{}/{}/mutations.csv".format(app.config["PIPELINE_PATH"], gisaid_id))
     
     alleles = sorted(set(df["Allele"]))
     if allele:
@@ -41,14 +41,7 @@ def show_report_page(gisaid_id):
    
     return render_template(
         "variant_stats.html",
-        df=df, mut=mut, gisaid_id=gisaid_id,
+        df=df, mut_df=mut_df, gisaid_id=gisaid_id,
         proteins=proteins, alleles=alleles, allele=allele
     )
-
-@frontend.route("/<gisaid_id>/<allele>", methods=["GET"])
-def show_allele_page(gisaid_id, allele):
-   
-    return render_template("allele_stats.html",
-            df=df, allele=allele, gisaid_id=gisaid_id, proteins=proteins)
-
 

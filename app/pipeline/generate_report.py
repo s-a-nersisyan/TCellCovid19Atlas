@@ -2,6 +2,8 @@ import pandas as pd
 import numpy as np
 from natsort import natsorted
 
+from plot_mutations import protein_plot, allele_plot
+
 import json
 import sys
 import os
@@ -11,6 +13,88 @@ sys.path.append("/".join(script_dir.split("/")[:-2]))
 
 from app import db
 from app.api.models import HLAAllelesPeptides
+
+def get_mutation(ref_seq, mut_seq, block_start, block_end, ref_numspaces, sub_type):
+    if (sub_type == "sub"):
+        if (block_end - block_start == 1):
+            mut = "{}{}{}".format(
+                ref_seq[block_start],
+                block_start - ref_numspaces + 1,
+                mut_seq[block_start]
+            )
+        else:
+            mut = "{}-{} {}->{}".format(
+                block_start - ref_numspaces + 1,
+                block_end - ref_numspaces,
+                ref_seq[block_start:block_end],
+                mut_seq[block_start:block_end]
+            )
+    
+    if (sub_type == "del"):
+        if (block_end - block_start == 1):
+            mut = "{}{} {}".format(
+                ref_seq[block_start],
+                block_start - ref_numspaces + 1,
+                "deletion"
+            )
+        elif (block_end - block_start <= 5):
+            mut = "{} {}-{} {}".format(
+                ref_seq[block_start:block_end],
+                block_start - ref_numspaces + 1,
+                block_end - ref_numspaces,
+                "deletion"
+            )
+        elif (block_end == len(ref_seq) and block_end - block_start > 5):
+            mut = "{}{}{}".format(
+                ref_seq[block_start],
+                block_start - ref_numspaces + 1,
+                "stop"
+            )
+        else:
+            mut = "{}-{} {}".format(
+                block_start - ref_numspaces + 1,
+                block_end - ref_numspaces,
+                "deletion"
+            )
+
+    if (sub_type == "ins"):
+        if (block_end - block_start == 1):
+            mut = "{}{} {}".format(
+                mut_seq[block_start],
+                block_start - ref_numspaces + 1,
+                "insertion"
+            )
+        elif (block_end - block_start <= 5):
+            mut = "{} {}-{} {}".format(
+                mut_seq[block_start:block_end],
+                block_start - ref_numspaces + 1,
+                block_end - ref_numspaces,
+                "insertion"
+            )
+ 
+        elif (block_start == 0 and block_end - block_start > 5):
+            mut = "{}{}{}".format(
+                mut_seq[block_start],
+                block_start - ref_numspaces + 1,
+                "start"
+            )
+        else:
+            mut = "{}-{} {}".format(
+                block_start - ref_numspaces + 1,
+                block_end - ref_numspaces,
+                "insertion"
+            )
+    
+    return mut
+
+def get_sub_type(r, m):
+    if (r == "-"):
+        return "ins"
+    if (m == "-"):
+        return "del"
+    if (r != m):
+        return "sub"
+    return "idn"
 
 gisaid_id = sys.argv[1]
 
@@ -22,8 +106,6 @@ peptide_len_range = {
 }
 
 df = pd.read_csv("{}/diff_HLA-I.csv".format(gisaid_id))
-#df = pd.read_csv("{}/binding_affinities_HLA-I.csv".format(gisaid_id))
-#print(df)
 
 ref_aln = open("{}/ref_aln.fasta".format(gisaid_id))
 mut_aln = open("{}/mut_aln.fasta".format(gisaid_id))
@@ -40,26 +122,40 @@ while 1:
     mut_seq = mut_aln.readline().strip()
 
     alignments[ref_protein] = (ref_seq, mut_seq)
-    
-    block_started = False
-    for i, (r, m) in enumerate(zip(ref_seq, mut_seq)):
-        if r == m:
-            if block_started:
-                block_started = False
-                block_end = i
-                mutations.append([ref_protein, block_start, block_end])
-        else:
-            if not block_started:
-                block_started = True
-                block_start = i
-    
-    if block_started:
-        block_started = False
-        block_end = i
-        mutations.append([ref_protein, block_start, block_end])
+    ref_numspaces = 0
 
+    i = 0
+    while (i < len(ref_seq)):
+        r = ref_seq[i]
+        m = mut_seq[i]
+        
+        if (r == "-"):
+            ref_numspaces += 1
+ 
+        if (r == m):
+            i += 1
+            continue
+        
+        block_start = block_end = i
+        sub_type = get_sub_type(r, m)
+        while (block_end < len(ref_seq)):
+            r = ref_seq[block_end]
+            m = mut_seq[block_end]
+            cur_type = get_sub_type(r, m)
+
+            if (cur_type != sub_type):
+                break
+            
+            block_end += 1
+        
+        mutation = get_mutation(ref_seq, mut_seq, block_start,
+                block_end, ref_numspaces, sub_type) 
+        mutations.append([ref_protein, block_start, block_end, mutation])
+
+        i = block_end
+        
 report = []
-for protein, start, end in mutations:
+for protein, start, end, mut in mutations:
     df1 = df.loc[
         ((df["protein"] == protein) & (df["aln_start"] < end) & (df["aln_end"] > start))
     ]
@@ -126,21 +222,48 @@ for protein, start, end in mutations:
         return neg_ratio, min_aff, row[0]
         
     report_row = sorted(report_row, key=sorting_key)
-    report.append([protein, start, end, report_row])
+    report.append([protein, start, end, mut, report_row])
 
 report_file = open("{}/report.json".format(gisaid_id), "w")
 json.dump(report, report_file)
 report_file.close()
 
 df = pd.DataFrame(columns=[
-    "Protein", "Aln start", "Aln end", "Allele", "Ref peptide", "Mut peptide", "Ref aff", "Mut aff"
+    "Protein", "Aln start", "Aln end",
+    "Mutation", "Allele", "Ref peptide",
+    "Mut peptide", "Ref aff", "Mut aff"
 ])
+
 for mutation in report:
-    df1 = pd.DataFrame(mutation[3])
+    df1 = pd.DataFrame(mutation[4])
     df1.columns = ["Allele", "Ref peptide", "Mut peptide", "Ref aff", "Mut aff"]
     df1["Protein"] = mutation[0]
     df1["Aln start"] = mutation[1]
     df1["Aln end"] = mutation[2]
+    df1["Mutation"] = mutation[3]
     df = pd.concat([df, df1])
 
 df.to_csv("{}/report.csv".format(gisaid_id), index=None)
+
+# generate mutation summary table
+mut_df = pd.DataFrame(columns=["Protein", "Mutation"])
+for protein in sorted(set(df["Protein"])):
+    for mut in sorted(set(df[df["Protein"] == protein]["Mutation"])):
+        mut_df.loc[len(mut_df)] = [protein, mut]
+
+mut_df.to_csv("{}/mutations.csv".format(gisaid_id), index=None)
+
+# generate allele plots
+alleles = set(df["Allele"])
+
+for allele in sorted(alleles):
+    print(gisaid_id, allele)
+    allele_plot(gisaid_id, allele)
+
+# generate protein plots
+proteins = set(df["Protein"])
+proteins.add("Summary")
+
+for protein in sorted(proteins):
+    print(gisaid_id, protein)
+    protein_plot(gisaid_id, protein)

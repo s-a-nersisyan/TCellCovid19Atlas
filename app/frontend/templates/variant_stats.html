@@ -13,9 +13,10 @@
           
           <h1 id="Summary">Summary</h1>
     
-          {% if not allele %}
             {% set total_mut_num = mut_df.shape[0] %}
-            <p>This strain contains {{total_mut_num}} protein-levelmutations:</p>
+
+            <p>This strain contains {{total_mut_num}} protein-level mutations:</p>
+            
             <ul>
               {% for protein in proteins %}
                 {% set mut_num = mut_df[mut_df["Protein"] == protein].shape[0] %}
@@ -24,10 +25,39 @@
                 <li>{{ mut_num }} mutations in {{ protein }} protein: {{ mut_protein_df|join(", ")}}</li>
               {% endfor %}
             </ul>
-            <h2>Total numbers of HLA-peptide interactions affected by mutations:</h2>
+
+            <hr>
+            
+            <p>
+              We identified all possible linear viral peptides affected by these mutations.
+              Whenever it was possible, we matched the reference peptide with the mutated one.
+              For example, D -> L mutation transformed S<b class="alert-primary">D</b>NGPQNQR to S<b class="alert-primary">L</b>NGPQNQR.
+              Cases when it was not meaningful included deletions and insertions at the flanks of the peptide, 
+              e.g., HV deletion in NVTWFHAI<b class="alert-primary">HV</b> peptide.
+            </p>
+
+            <p>
+              Then, we predicted binding affinities between the selected peptides and frequent
+              HLA alleles. Predictions were made with
+              <a href="https://doi.org/10.1093/nar/gkaa379" target="_blank">NetMHCpan-4.1 and NetMHCIIpan-4.0</a>.
+              The binding affinities were classifies into three groups:
+            </p>
+
+            <ol>
+              <li class="py-1"><mark class="alert-success">Tight binding (IC<sub>50</sub> affinity &leq; 50 nM)</mark></li>
+              <li class="py-1"><mark class="alert-warning">Moderate binding (50 nM < IC<sub>50</sub> affinity &leq; 500 nM)</mark></li>
+              <li class="py-1"><mark class="alert-danger">Weak/no binding (IC<sub>50</sub> affinity > 500 nM)</mark></li>
+            </ol>
+
+            <p>
+              Here we report HLA-peptide interactions whose affinity was altered by at least two folds.
+            </p>
+
+          {% if not allele %}
+            <h3>The total number of HLA-peptide interactions affected by the mutations</h3>
             <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '_Summary' + '.png') }}" class="img-fluid" width="100% / 8" alt="Summary"/>
           {% else %}
-            <p>Total numbers of {{ allele }}-peptide interactions affected by mutations:</p>
+            <h3>The total number of interactions between {{ allele }} and peptides affected by the mutations</h3>
             <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '_' + allele + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ allele }}"/>
           {% endif %}
         
@@ -45,9 +75,6 @@
               <p>{{ mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Ref block"].iloc[0] }}</p>
               <p>{{ mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Mut block"].iloc[0] }}</p>
               
-              <p><mark class="alert-success">Tight binding (IC<sub>50</sub> affinity &leq; 50 nM)</mark></p>
-              <p><mark class="alert-warning">Moderate binding (50 nM < IC<sub>50</sub> affinity &leq; 500 nM)</mark></p>
-              <p><mark class="alert-danger">Weak/no binding (IC<sub>50</sub> affinity > 500 nM)</mark></p>
               <table class="table table-bordered table-striped">
                 <thead>
                   <tr>

@@ -41,6 +41,9 @@
             {% set protein_df = df[df["Protein"] == protein]%}
             {% for (protein, aln_start, aln_end, mutation), df1 in protein_df.groupby(['Protein', 'Aln start', 'Aln end', 'Mutation']) %}
               <h3>{{ mutation }}</h3>
+
+              <p>{{ mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Ref block"].iloc[0] }}</p>
+              <p>{{ mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Mut block"].iloc[0] }}</p>
               
               <p><mark class="alert-success">Tight binding (IC<sub>50</sub> affinity &leq; 50 nM)</mark></p>
               <p><mark class="alert-warning">Moderate binding (50 nM < IC<sub>50</sub> affinity &leq; 500 nM)</mark></p>

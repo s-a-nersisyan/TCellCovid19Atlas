@@ -100,8 +100,8 @@ def protein_plot(gisaid_id, protein=None):
     fig, axes = plt.subplots(nrows=1, ncols=2)
   
     max_val = max(
-        np.max(df_prc["Weaker binding"]),
-        np.max(df_prc["Stronger binding"])
+        abs(np.max(df_prc["Weaker binding"])),
+        abs(np.min(df_prc["Stronger binding"]))
     ) + 5
    
     df_prc.plot.barh(
@@ -116,8 +116,8 @@ def protein_plot(gisaid_id, protein=None):
    
 
     max_val = max(
-        np.max(df_num["Weaker binding"]),
-        np.max(df_num["Stronger binding"])
+        abs(np.max(df_num["Weaker binding"])),
+        abs(np.min(df_num["Stronger binding"]))
     ) + 1
    
     df_num.plot.barh(
@@ -170,7 +170,11 @@ def allele_plot(gisaid_id, allele):
     tight_binders = db.session.query(
         PeptidesPositions,
         HLAAllelesPeptides
-    ).filter(HLAAllelesPeptides.hla_allele == allele)
+    ).filter(
+        HLAAllelesPeptides.hla_allele == allele
+    ).filter(
+        HLAAllelesPeptides.affinity <= AFFINITY_THRESHOLD   
+    )
  
     df_num = pd.DataFrame(columns=["Protein", "Weaker binding", "Stronger binding"])
     df_prc = pd.DataFrame(columns=["Protein", "Weaker binding", "Stronger binding"])
@@ -231,8 +235,8 @@ def allele_plot(gisaid_id, allele):
     fig, axes = plt.subplots(nrows=1, ncols=2)
 
     max_val = max(
-        np.max(df_prc["Weaker binding"]),
-        np.max(df_prc["Stronger binding"])
+        abs(np.max(df_prc["Weaker binding"])),
+        abs(np.min(df_prc["Stronger binding"]))
     ) + 5
  
     df_prc.plot.barh(
@@ -247,8 +251,8 @@ def allele_plot(gisaid_id, allele):
    
 
     max_val = max(
-        np.max(df_num["Weaker binding"]),
-        np.max(df_num["Stronger binding"])
+        abs(np.max(df_num["Weaker binding"])),
+        abs(np.min(df_num["Stronger binding"]))
     ) + 1
     
     df_num.plot.barh(

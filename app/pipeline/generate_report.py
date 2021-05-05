@@ -99,7 +99,8 @@ def get_sub_type(r, m):
 gisaid_id = sys.argv[1]
 
 AFFINITY_THRESHOLD1 = 500
-AFFINITY_THRESHOLD2 = 500
+AFFINITY_THRESHOLD2 = 50
+
 peptide_len_range = {
     "HLA-I": [8, 14],
     "HLA-II": [15, 20]
@@ -235,7 +236,8 @@ report_file.close()
 df = pd.DataFrame(columns=[
     "Protein", "Aln start", "Aln end",
     "Mutation", "Allele", "Ref peptide",
-    "Mut peptide", "Ref aff", "Mut aff"
+    "Mut peptide", "Ref aff", "Mut aff",
+    "Ref aff type", "Mut aff type"
 ])
 
 for mutation in report:
@@ -245,6 +247,27 @@ for mutation in report:
     df1["Aln start"] = mutation[1]
     df1["Aln end"] = mutation[2]
     df1["Mutation"] = mutation[3]
+    df1["Ref aff type"] = df1["Mut aff type"] = None
+    
+    for i, row in df1.iterrows(): 
+        if (row["Ref aff"] == None or
+                row["Ref aff"] >= AFFINITY_THRESHOLD1):
+            df1.loc[i, "Ref aff type"] = "Weak/no binding"
+        elif (row["Ref aff"] >  AFFINITY_THRESHOLD2 and
+                row["Ref aff"] <= AFFINITY_THRESHOLD1):
+            df1.loc[i, "Ref aff type"] = "Moderate binding" 
+        elif (row["Ref aff"] <= AFFINITY_THRESHOLD2):
+            df1.loc[i, "Ref aff type"] = "Tight binding"
+
+        if (row["Mut aff"] == None or
+                row["Mut aff"] >= AFFINITY_THRESHOLD1):
+            df1.loc[i, "Mut aff type"] = "Weak/no binding"
+        elif (row["Mut aff"] >  AFFINITY_THRESHOLD2 and
+                row["Mut aff"] <= AFFINITY_THRESHOLD1):
+            df1.loc[i, "Mut aff type"] = "Moderate binding" 
+        elif (row["Mut aff"] <= AFFINITY_THRESHOLD2):
+            df1.loc[i, "Mut aff type"] = "Tight binding"
+
     df = pd.concat([df, df1])
 
 df.to_csv("{}/report.csv".format(gisaid_id), index=None)

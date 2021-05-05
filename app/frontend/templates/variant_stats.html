@@ -71,9 +71,15 @@
             {% set protein_df = df[df["Protein"] == protein]%}
             {% for (protein, aln_start, aln_end, mutation), df1 in protein_df.groupby(['Protein', 'Aln start', 'Aln end', 'Mutation']) %}
               <h3>{{ mutation }}</h3>
-
-              <p>{{ mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Ref block"].iloc[0] }}</p>
-              <p>{{ mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Mut block"].iloc[0] }}</p>
+              {% set ref_block = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Ref block"].iloc[0] %}
+              {% set mut_block = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Mut block"].iloc[0] %}
+              {% set block_start = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Block start"].iloc[0] | int %}
+              {% set block_end = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Block end"].iloc[0] | int %}
+              <p>
+                <span style="font-family: monospace;">{{ ref_block[:block_start] }}<b class="alert-primary">{{ ref_block[block_start:block_end] }}</b>{{ ref_block[block_end:] }}</span> (reference)
+                <br>
+                <span style="font-family: monospace;">{{ mut_block[:block_start] }}<b class="alert-primary" style="font-family: monospace;">{{ mut_block[block_start:block_end] }}</b>{{ mut_block[block_end:] }}</span> (mutation)
+              </p>
               
               <table class="table table-bordered table-striped">
                 <thead>

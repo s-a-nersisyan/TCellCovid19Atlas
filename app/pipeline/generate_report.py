@@ -260,7 +260,13 @@ proteins = set(df["Protein"])
 for protein, start, end, mut, ref_block, mut_block in mutations:
     if not protein in proteins:
         continue
-    mut_df.loc[len(mut_df)] = [protein, start, end, mut, ref_block, mut_block]
+
+    mut_df.loc[len(mut_df)] = [
+        protein,
+        start - (max(0, start - 10)),
+        end - (max(0, start - 10)),
+        mut, ref_block, mut_block
+    ]
 
 
 # for protein in sorted(set(df["Protein"])):

@@ -149,13 +149,17 @@ while 1:
             block_end += 1
         
         mutation = get_mutation(ref_seq, mut_seq, block_start,
-                block_end, ref_numspaces, sub_type) 
-        mutations.append([ref_protein, block_start, block_end, mutation])
+                block_end, ref_numspaces, sub_type)
+	
+        ref_block = ref_seq[max(0, block_start - 10):min(len(ref_seq), block_end + 10)]
+        mut_block = mut_seq[max(0, block_start - 10):min(len(mut_seq), block_end + 10)]
+
+        mutations.append([ref_protein, block_start, block_end, mutation, ref_block, mut_block])
 
         i = block_end
         
 report = []
-for protein, start, end, mut in mutations:
+for protein, start, end, mut, ref_block, mut_block in mutations:
     df1 = df.loc[
         ((df["protein"] == protein) & (df["aln_start"] < end) & (df["aln_end"] > start))
     ]
@@ -246,10 +250,22 @@ for mutation in report:
 df.to_csv("{}/report.csv".format(gisaid_id), index=None)
 
 # generate mutation summary table
-mut_df = pd.DataFrame(columns=["Protein", "Mutation"])
-for protein in sorted(set(df["Protein"])):
-    for mut in sorted(set(df[df["Protein"] == protein]["Mutation"])):
-        mut_df.loc[len(mut_df)] = [protein, mut]
+mut_df = pd.DataFrame(columns=[
+    "Protein", "Block start",
+    "Block end", "Mutation",
+    "Ref block", "Mut block"
+])
+
+proteins = set(df["Protein"])
+for protein, start, end, mut, ref_block, mut_block in mutations:
+    if not protein in proteins:
+        continue
+    mut_df.loc[len(mut_df)] = [protein, start, end, mut, ref_block, mut_block]
+
+
+# for protein in sorted(set(df["Protein"])):
+#     for mut in sorted(set(df[df["Protein"] == protein]["Mutation"])):
+#         mut_df.loc[len(mut_df)] = [protein, mut]
 
 mut_df.to_csv("{}/mutations.csv".format(gisaid_id), index=None)
 

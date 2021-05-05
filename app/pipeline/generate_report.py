@@ -99,7 +99,8 @@ def get_sub_type(r, m):
 gisaid_id = sys.argv[1]
 
 AFFINITY_THRESHOLD1 = 500
-AFFINITY_THRESHOLD2 = 500
+AFFINITY_THRESHOLD2 = 50
+
 peptide_len_range = {
     "HLA-I": [8, 14],
     "HLA-II": [15, 20]
@@ -149,13 +150,17 @@ while 1:
             block_end += 1
         
         mutation = get_mutation(ref_seq, mut_seq, block_start,
-                block_end, ref_numspaces, sub_type) 
-        mutations.append([ref_protein, block_start, block_end, mutation])
+                block_end, ref_numspaces, sub_type)
+	
+        ref_block = ref_seq[max(0, block_start - 10):min(len(ref_seq), block_end + 10)]
+        mut_block = mut_seq[max(0, block_start - 10):min(len(mut_seq), block_end + 10)]
+
+        mutations.append([ref_protein, block_start, block_end, mutation, ref_block, mut_block])
 
         i = block_end
         
 report = []
-for protein, start, end, mut in mutations:
+for protein, start, end, mut, ref_block, mut_block in mutations:
     df1 = df.loc[
         ((df["protein"] == protein) & (df["aln_start"] < end) & (df["aln_end"] > start))
     ]
@@ -231,7 +236,8 @@ report_file.close()
 df = pd.DataFrame(columns=[
     "Protein", "Aln start", "Aln end",
     "Mutation", "Allele", "Ref peptide",
-    "Mut peptide", "Ref aff", "Mut aff"
+    "Mut peptide", "Ref aff", "Mut aff",
+    "Ref aff type", "Mut aff type"
 ])
 
 for mutation in report:
@@ -241,15 +247,54 @@ for mutation in report:
     df1["Aln start"] = mutation[1]
     df1["Aln end"] = mutation[2]
     df1["Mutation"] = mutation[3]
+    df1["Ref aff type"] = df1["Mut aff type"] = None
+    
+    for i, row in df1.iterrows(): 
+        if (row["Ref aff"] == None or
+                row["Ref aff"] >= AFFINITY_THRESHOLD1):
+            df1.loc[i, "Ref aff type"] = "Weak/no binding"
+        elif (row["Ref aff"] >  AFFINITY_THRESHOLD2 and
+                row["Ref aff"] <= AFFINITY_THRESHOLD1):
+            df1.loc[i, "Ref aff type"] = "Moderate binding" 
+        elif (row["Ref aff"] <= AFFINITY_THRESHOLD2):
+            df1.loc[i, "Ref aff type"] = "Tight binding"
+
+        if (row["Mut aff"] == None or
+                row["Mut aff"] >= AFFINITY_THRESHOLD1):
+            df1.loc[i, "Mut aff type"] = "Weak/no binding"
+        elif (row["Mut aff"] >  AFFINITY_THRESHOLD2 and
+                row["Mut aff"] <= AFFINITY_THRESHOLD1):
+            df1.loc[i, "Mut aff type"] = "Moderate binding" 
+        elif (row["Mut aff"] <= AFFINITY_THRESHOLD2):
+            df1.loc[i, "Mut aff type"] = "Tight binding"
+
     df = pd.concat([df, df1])
 
 df.to_csv("{}/report.csv".format(gisaid_id), index=None)
 
 # generate mutation summary table
-mut_df = pd.DataFrame(columns=["Protein", "Mutation"])
-for protein in sorted(set(df["Protein"])):
-    for mut in sorted(set(df[df["Protein"] == protein]["Mutation"])):
-        mut_df.loc[len(mut_df)] = [protein, mut]
+mut_df = pd.DataFrame(columns=[
+    "Protein", "Block start",
+    "Block end", "Mutation",
+    "Ref block", "Mut block"
+])
+
+proteins = set(df["Protein"])
+for protein, start, end, mut, ref_block, mut_block in mutations:
+    if not protein in proteins:
+        continue
+
+    mut_df.loc[len(mut_df)] = [
+        protein,
+        start - (max(0, start - 10)),
+        end - (max(0, start - 10)),
+        mut, ref_block, mut_block
+    ]
+
+
+# for protein in sorted(set(df["Protein"])):
+#     for mut in sorted(set(df[df["Protein"] == protein]["Mutation"])):
+#         mut_df.loc[len(mut_df)] = [protein, mut]
 
 mut_df.to_csv("{}/mutations.csv".format(gisaid_id), index=None)
 

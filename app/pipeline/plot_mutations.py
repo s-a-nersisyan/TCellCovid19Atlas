@@ -63,11 +63,14 @@ def protein_plot(gisaid_id, protein=None):
             (report["Mut aff"] <= AFFINITY_THRESHOLD)
         ])
         
-        if (tight_binders_num == 0):
-            increase = decrease = 0
-        else:
-            increase = increase / tight_binders_num * 100
-            decrease = decrease / tight_binders_num * 100
+        increase = increase / (tight_binders_num + 1) * 100
+        decrease = decrease / (tight_binders_num + 1) * 100
+        
+        # if (tight_binders_num == 0):
+        #     increase = decrease = 0
+        # else:
+        #     increase = increase / tight_binders_num * 100
+        #     decrease = decrease / tight_binders_num * 100
         
         df_prc.loc[len(df_prc)] = [allele, increase, decrease]
     
@@ -90,25 +93,33 @@ def protein_plot(gisaid_id, protein=None):
     
     df_num = df_num.set_index(df_num["Allele"])
     df_num = df_num.sort_values(by=["Weaker binding", "Stronger binding"], ascending=True)
-    max_val = max(
-        np.max(df_num["Weaker binding"]),
-        np.max(df_num["Stronger binding"])
-    ) + 1
     df_num["Stronger binding"] = -df_num["Stronger binding"]
     df_prc = df_prc.loc[df_num.index]
     
     sns.set()
     fig, axes = plt.subplots(nrows=1, ncols=2)
+  
+    max_val = max(
+        abs(np.max(df_prc["Weaker binding"])),
+        abs(np.min(df_prc["Stronger binding"]))
+    ) + 5
+   
     df_prc.plot.barh(
         stacked=True,
         ylabel="Percentage of tight-binding peptides", xlabel="",
         figsize=(12, 2 + len(df_prc) / 4),
         ax=axes[1],
-        xlim=[-100, 100]
+        xlim=[-max_val, max_val]
     )
     axes[1].legend(loc='lower right')
     axes[1].set_xlabel("Percentage of tight-binding peptides")
-    
+   
+
+    max_val = max(
+        abs(np.max(df_num["Weaker binding"])),
+        abs(np.min(df_num["Stronger binding"]))
+    ) + 1
+   
     df_num.plot.barh(
         stacked=True,
         ylabel="Number of peptides", xlabel="",
@@ -159,7 +170,11 @@ def allele_plot(gisaid_id, allele):
     tight_binders = db.session.query(
         PeptidesPositions,
         HLAAllelesPeptides
-    ).filter(HLAAllelesPeptides.hla_allele == allele)
+    ).filter(
+        HLAAllelesPeptides.hla_allele == allele
+    ).filter(
+        HLAAllelesPeptides.affinity <= AFFINITY_THRESHOLD   
+    )
  
     df_num = pd.DataFrame(columns=["Protein", "Weaker binding", "Stronger binding"])
     df_prc = pd.DataFrame(columns=["Protein", "Weaker binding", "Stronger binding"])
@@ -181,12 +196,16 @@ def allele_plot(gisaid_id, allele):
             (report["Mut aff"] <= AFFINITY_THRESHOLD)
         ])
         
-        if (tight_binders_num == 0):
-            increase = decrease = 0
-        else:
-            increase = increase / tight_binders_num * 100
-            decrease = decrease / tight_binders_num * 100
+        # if (tight_binders_num == 0):
+        #     increase = decrease = 0
+        # else:
+        #     increase = increase / tight_binders_num * 100
+        #     decrease = decrease / tight_binders_num * 100
+        
+        increase = increase / (tight_binders_num + 1) * 100
+        decrease = decrease / (tight_binders_num + 1) * 100
     
+
         df_prc.loc[len(df_prc)] = [protein, increase, decrease]
     
     
@@ -208,25 +227,33 @@ def allele_plot(gisaid_id, allele):
     
     df_num = df_num.set_index(df_num["Protein"])
     df_num = df_num.sort_values(by=["Weaker binding", "Stronger binding"], ascending=True)
-    max_val = max(
-        np.max(df_num["Weaker binding"]),
-        np.max(df_num["Stronger binding"])
-    ) + 1
     df_num["Stronger binding"] = -df_num["Stronger binding"]
     df_prc = df_prc.loc[df_num.index]
     
     
     sns.set()
     fig, axes = plt.subplots(nrows=1, ncols=2)
+
+    max_val = max(
+        abs(np.max(df_prc["Weaker binding"])),
+        abs(np.min(df_prc["Stronger binding"]))
+    ) + 5
+ 
     df_prc.plot.barh(
         stacked=True,
         ylabel="Percentage of tight-binding peptides", xlabel="",
         figsize=(12, 2 + len(df_prc) / 4),
         ax=axes[1],
-        xlim=[-100, 100]
+        xlim=[-max_val, max_val]
     )
     axes[1].legend(loc='lower right')
     axes[1].set_xlabel("Percentage of tight-binding peptides")
+   
+
+    max_val = max(
+        abs(np.max(df_num["Weaker binding"])),
+        abs(np.min(df_num["Stronger binding"]))
+    ) + 1
     
     df_num.plot.barh(
         stacked=True,

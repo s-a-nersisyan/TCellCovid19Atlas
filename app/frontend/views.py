@@ -3,6 +3,7 @@ from app import app
 
 from flask import render_template
 from flask import request
+from flask import Response
 
 import pandas as pd
 import os
@@ -43,5 +44,21 @@ def show_report_page(gisaid_id):
         "variant_stats.html",
         df=df, mut_df=mut_df, gisaid_id=gisaid_id,
         proteins=proteins, alleles=alleles, allele=allele
+    )
+
+@frontend.route("/<gisaid_id>/download_report", methods=["GET"])
+def download_report(gisaid_id):
+    
+    # Load report
+    with open("{}/{}/report.csv".format(app.config["PIPELINE_PATH"], gisaid_id)) as rf:
+        report = rf.read()
+    
+    return Response(
+        report,
+        mimetype="text/csv",
+        headers={
+            "Content-disposition":
+            "attachment; filename={}.csv".format(gisaid_id)
+        }
     )
 

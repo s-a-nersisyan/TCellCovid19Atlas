@@ -13,16 +13,23 @@
           
           <h1 id="Summary">Summary</h1>
     
-          {% set total_mut_num = mut_df.shape[0] %}
-
-          <p>This strain contains {{total_mut_num}} protein-level mutations:</p>
+          {% set total_mut_num = mut_df.shape[0] | int %}
+          {% if total_mut_num == 1 %}
+            <p>This strain contains {{total_mut_num}} protein-level mutation:</p>
+          {% else %}
+            <p>This strain contains {{total_mut_num}} protein-level mutations:</p>
+          {% endif %}
           
           <ul>
             {% for protein in proteins %}
-              {% set mut_num = mut_df[mut_df["Protein"] == protein].shape[0] %}
+              {% set mut_num = mut_df[mut_df["Protein"] == protein].shape[0] | int %}
               {% set mutations = "" %}
               {% set mut_protein_df = mut_df[mut_df["Protein"] == protein]["Mutation"] %}
-              <li>{{ mut_num }} mutations in {{ protein }} protein: {{ mut_protein_df|join(", ")}}</li>
+              {% if mut_num == 1 %}
+                <li>{{ mut_num }} mutation in {{ protein }} protein: {{ mut_protein_df|join(", ")}}</li>
+              {% else %}
+                <li>{{ mut_num }} mutations in {{ protein }} protein: {{ mut_protein_df|join(", ")}}</li>
+              {% endif %}
             {% endfor %}
           </ul>
 
@@ -88,6 +95,16 @@
             {% set protein_df = df[df["Protein"] == protein]%}
             {% for (protein, aln_start, aln_end, mutation), df1 in protein_df.groupby(['Protein', 'Aln start', 'Aln end', 'Mutation']) %}
               <h3>{{ mutation }}</h3>
+              {% set ref_block = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Ref block"].iloc[0] %}
+              {% set mut_block = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Mut block"].iloc[0] %}
+              {% set block_start = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Block start"].iloc[0] | int %}
+              {% set block_end = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Block end"].iloc[0] | int %}
+              <p>
+                <span style="font-family: monospace;">{{ ref_block[:block_start] }}<b class="alert-primary">{{ ref_block[block_start:block_end] }}</b>{{ ref_block[block_end:] }}</span> (reference)
+                <br>
+                <span style="font-family: monospace;">{{ mut_block[:block_start] }}<b class="alert-primary" style="font-family: monospace;">{{ mut_block[block_start:block_end] }}</b>{{ mut_block[block_end:] }}</span> (mutation)
+              </p>
+              <a class="btn btn-link" style="float: right;" href="{{gisaid_id}}/download_report" role="button">Export table in csv</a>
               
               <table class="table table-bordered table-striped">
                 <thead>
@@ -106,10 +123,10 @@
                   <td>{{ row['Ref peptide'] }}</td>
                   <td>{{ row['Mut peptide'] }}</td>
                   
-                  {% for aff in [row['Ref aff'], row['Mut aff']] %}
-                    {% if aff == "-" or aff > 500 %}
+                  {% for aff, aff_type in [(row['Ref aff'], row['Ref aff type']), (row['Mut aff'], row['Mut aff type'])] %}
+                    {% if aff_type == "Weak/no binding" %}
                       {% set class_name = 'alert-danger' %}
-                    {% elif aff > 50 %}
+                    {% elif aff_type == "Moderate binding" %}
                       {% set class_name = 'alert-warning' %}
                     {% else %}
                       {% set class_name = 'alert-success' %}

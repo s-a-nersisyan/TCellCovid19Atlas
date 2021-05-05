@@ -33,13 +33,17 @@
         
           {% for protein in proteins %}
             <h1 id="{{ protein }}">{{ protein }} protein</h1>
-            <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '_' + protein + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ protein }}"/>
+            
+            {% if not allele %}
+              <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '_' + protein + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ protein }}"/>
+            {% endif %}
+
             {% set protein_df = df[df["Protein"] == protein]%}
             {% for (protein, aln_start, aln_end, mutation), df1 in protein_df.groupby(['Protein', 'Aln start', 'Aln end', 'Mutation']) %}
               <h3>{{ mutation }}</h3>
               
               <p><mark class="alert-success">Tight binding (IC<sub>50</sub> affinity &leq; 50 nM)</mark></p>
-              <p><mark class="alert-warning">Moderate binding (IC<sub>50</sub> affinity &leq; 5000 nM)</mark></p>
+              <p><mark class="alert-warning">Moderate binding (50 nM < IC<sub>50</sub> affinity &leq; 500 nM)</mark></p>
               <p><mark class="alert-danger">Weak/no binding (IC<sub>50</sub> affinity > 500 nM)</mark></p>
               <table class="table table-bordered table-striped">
                 <thead>

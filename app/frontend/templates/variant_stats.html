@@ -13,48 +13,65 @@
           
           <h1 id="Summary">Summary</h1>
     
-            {% set total_mut_num = mut_df.shape[0] %}
+          {% set total_mut_num = mut_df.shape[0] %}
 
-            <p>This strain contains {{total_mut_num}} protein-level mutations:</p>
-            
-            <ul>
-              {% for protein in proteins %}
-                {% set mut_num = mut_df[mut_df["Protein"] == protein].shape[0] %}
-                {% set mutations = "" %}
-                {% set mut_protein_df = mut_df[mut_df["Protein"] == protein]["Mutation"] %}
-                <li>{{ mut_num }} mutations in {{ protein }} protein: {{ mut_protein_df|join(", ")}}</li>
-              {% endfor %}
-            </ul>
+          <p>This strain contains {{total_mut_num}} protein-level mutations:</p>
+          
+          <ul>
+            {% for protein in proteins %}
+              {% set mut_num = mut_df[mut_df["Protein"] == protein].shape[0] %}
+              {% set mutations = "" %}
+              {% set mut_protein_df = mut_df[mut_df["Protein"] == protein]["Mutation"] %}
+              <li>{{ mut_num }} mutations in {{ protein }} protein: {{ mut_protein_df|join(", ")}}</li>
+            {% endfor %}
+          </ul>
 
-            <hr>
-            
-            <p>
-              We identified all possible linear viral peptides affected by these mutations.
-              Whenever it was possible, we matched the reference peptide with the mutated one.
-              For example, D -> L mutation transformed S<b class="alert-primary">D</b>NGPQNQR to S<b class="alert-primary">L</b>NGPQNQR.
-              Cases when it was not meaningful included deletions and insertions at the flanks of the peptide, 
-              e.g., HV deletion in NVTWFHAI<b class="alert-primary">HV</b> peptide.
-            </p>
+          <hr>
+          
+          <p>
+            We identified all possible linear viral peptides affected by these mutations.
+            Whenever it was possible, we matched the reference peptide with the mutated one.
+            For example, D -> L mutation transformed S<b class="alert-primary">D</b>NGPQNQR to S<b class="alert-primary">L</b>NGPQNQR.
+            Cases when it was not meaningful included deletions and insertions at the flanks of the peptide, 
+            e.g., HV deletion in NVTWFHAI<b class="alert-primary">HV</b> peptide.
+          </p>
 
-            <p>
-              Then, we predicted binding affinities between the selected peptides and frequent
-              HLA alleles. Predictions were made with
-              <a href="https://doi.org/10.1093/nar/gkaa379" target="_blank">NetMHCpan-4.1 and NetMHCIIpan-4.0</a>.
-              The binding affinities were classifies into three groups:
-            </p>
+          <p>
+            Then, we predicted binding affinities between the selected peptides and frequent
+            HLA alleles. Predictions were made with
+            <a href="https://doi.org/10.1093/nar/gkaa379" target="_blank">NetMHCpan-4.1 and NetMHCIIpan-4.0</a>.
+            The binding affinities were classifies into three groups:
+          </p>
 
-            <ol>
-              <li class="py-1"><mark class="alert-success">Tight binding (IC<sub>50</sub> affinity &leq; 50 nM)</mark></li>
-              <li class="py-1"><mark class="alert-warning">Moderate binding (50 nM < IC<sub>50</sub> affinity &leq; 500 nM)</mark></li>
-              <li class="py-1"><mark class="alert-danger">Weak/no binding (IC<sub>50</sub> affinity > 500 nM)</mark></li>
-            </ol>
+          <ol>
+            <li class="py-1"><mark class="alert-success">Tight binding (IC<sub>50</sub> affinity &leq; 50 nM)</mark></li>
+            <li class="py-1"><mark class="alert-warning">Moderate binding (50 nM < IC<sub>50</sub> affinity &leq; 500 nM)</mark></li>
+            <li class="py-1"><mark class="alert-danger">Weak/no binding (IC<sub>50</sub> affinity > 500 nM)</mark></li>
+          </ol>
 
-            <p>
-              Here we report HLA-peptide interactions whose affinity was altered by at least two folds.
-            </p>
+          <p>
+            Here we report HLA-peptide interactions whose affinity was altered by at least two folds.
+          </p>
 
           {% if not allele %}
             <h3>The total number of HLA-peptide interactions affected by the mutations</h3>
+            <p>
+              For each allele we calculated the number of peptides with increased and decreased
+              affinitiy (two or more times). The absolute number of such peptides is showed on
+              the left side of the figure 
+              (<mark style="background-color: #1f77b4; color: white;">blue bars</mark> &mdash; weaker binding,
+              <mark style="background-color: #ff7f0e; color: white;">orange bars</mark> &mdash; stronger).
+            </p>
+            <p>
+              While absolute numbers are of interest, they do not reflect the initial number of tighly binding
+              peptides for the specific allele. Roughly speaking, if an allele had high number of tight binders,
+              then vanished affinity of several peptides will not affect much the integral ability of peptide
+              presentation. To the contrary, low number of vanished peptides could be important if the particular
+              allele initially had narrow epitope repertoire. To account for this effect, we normalized the absolute
+              numbers of new/vanished tight binders (IC<sub>50</sub> affinity &leq; 50 nM) by the total number
+              of tight binders for each allele. The results are showed in the right part of the figure.
+              Protein-specific plots are listed below.
+            </p>
             <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '_Summary' + '.png') }}" class="img-fluid" width="100% / 8" alt="Summary"/>
           {% else %}
             <h3>The total number of interactions between {{ allele }} and peptides affected by the mutations</h3>

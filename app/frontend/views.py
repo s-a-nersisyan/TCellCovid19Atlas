@@ -37,8 +37,10 @@ def show_report_page(gisaid_id):
     
     df["Ref aff"] = [int(aff) if type(aff) == float else aff for aff in df["Ref aff"]]
     df["Mut aff"] = [int(aff) if type(aff) == float else aff for aff in df["Mut aff"]]
-    
-    proteins = list(pd.read_csv("{}/{}/proteins.csv".format(app.config["PIPELINE_PATH"], gisaid_id))["Protein"])
+
+    proteins = set(df["Protein"])
+    preordered_proteins = list(pd.read_csv("{}/{}/proteins.csv".format(app.config["PIPELINE_PATH"], gisaid_id))["Protein"])
+    ordered_proteins = [protein for protein in preordered_proteins if protein in proteins] 
    
     return render_template(
         "variant_stats.html",

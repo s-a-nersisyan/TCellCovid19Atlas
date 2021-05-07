@@ -98,53 +98,52 @@ def protein_plot(gisaid_id, protein=None):
     
     sns.set()
     fig, axes = plt.subplots(nrows=1, ncols=2)
-  
-    max_val = max(
-        abs(np.max(df_prc["Weaker binding"])),
-        abs(np.min(df_prc["Stronger binding"]))
-    )
-   
-    df_prc.plot.barh(
-        stacked=True,
-        ylabel="Percentage of tight-binding peptides", xlabel="",
-        figsize=(12, 2 + len(df_prc) / 4),
-        ax=axes[1],
-        xlim=[-(max_val + 1) * (11 / 10), (max_val + 1) * (11 / 10)]
-    )
-    axes[1].legend(loc='lower right')
-    axes[1].set_xlabel("Percentage of tight-binding peptides")
-    if (max_val > 4):
-        axes[1].set_xticks(
-            [int(max_val * i / 4) for i in range(1, 5)] + [0] +
-            [-int(max_val * i / 4) for i in range(1, 5)]
-        )
-    else:
-        axes[1].set_xticks(list(range(-int(max_val), int(max_val) + 1)))
+    max_val = []
 
-
-    max_val = max(
+    max_val.append(max(
         abs(np.max(df_num["Weaker binding"])),
         abs(np.min(df_num["Stronger binding"]))
-    )
+    ))
    
     df_num.plot.barh(
         stacked=True,
         ylabel="Number of peptides", xlabel="",
         figsize=(12, 2 + len(df_num) / 4),
         ax=axes[0],
-        xlim=[-(max_val + 1) * (11 / 10), (max_val + 1) * (11 / 10)],
         legend=False
     )
-    axes[0].set_xlabel("Number of peptides")
-    if (max_val > 4):
-        axes[0].set_xticks(
-            [int(max_val * i / 4) for i in range(1, 5)] + [0] +
-            [-int(max_val * i / 4) for i in range(1, 5)]
-        )
-    else:
-        axes[0].set_xticks(list(range(-int(max_val), int(max_val) + 1)))
+ 
 
+    max_val.append(max(
+        abs(np.max(df_prc["Weaker binding"])),
+        abs(np.min(df_prc["Stronger binding"]))
+    ))
+   
+    df_prc.plot.barh(
+        stacked=True,
+        ylabel="Percentage of tight-binding peptides", xlabel="",
+        figsize=(12, 2 + len(df_prc) / 4),
+        ax=axes[1],
+    )
+    axes[1].legend(loc='lower right')
+    axes[1].set_xlabel("Percentage of tight-binding peptides")
+    
+     
     # set ticks
+    for j in [0, 1]:
+        if (max_val[j] > 4):
+            border = int(max_val[j]) // 4 * 4 + 4
+            step = border // 4
+            axes[j].set_xticks(
+                [step * i for i in range(-4, 5)]
+            )
+            axes[j].set_xlim(-border * 11 / 10, border * 11 / 10)
+        else:
+            axes[j].set_xticks(list(range(-int(max_val[j]), int(max_val[j]) + 1)))
+            axes[j].set_xlim(-int(max_val[j]) - 1, int(max_val[j]) + 1)
+
+
+    # set ticks' labels
     fig.canvas.draw()
     for i in range(len(axes)):
         labels = []
@@ -246,52 +245,50 @@ def allele_plot(gisaid_id, allele):
     
     sns.set()
     fig, axes = plt.subplots(nrows=1, ncols=2)
+    max_val = []
 
-    max_val = max(
-        abs(np.max(df_prc["Weaker binding"])),
-        abs(np.min(df_prc["Stronger binding"]))
-    )
- 
-    df_prc.plot.barh(
-        stacked=True,
-        ylabel="Percentage of tight-binding peptides", xlabel="",
-        figsize=(12, 2 + len(df_prc) / 4),
-        ax=axes[1],
-        xlim=[-(max_val + 1) * (11 / 10), (max_val + 1) * (11 / 10)]
-    )
-    axes[1].legend(loc='lower right')
-    axes[1].set_xlabel("Percentage of tight-binding peptides")
-    if (max_val > 4):
-        axes[1].set_xticks(
-            [int(max_val * i / 4) for i in range(1, 5)] + [0] +
-            [-int(max_val * i / 4) for i in range(1, 5)]
-        )
-    else:
-        axes[1].set_xticks(list(range(-int(max_val), int(max_val) + 1)))
-
-
-    max_val = max(
+    max_val.append(max(
         abs(np.max(df_num["Weaker binding"])),
         abs(np.min(df_num["Stronger binding"]))
-    )
+    ))
     
     df_num.plot.barh(
         stacked=True,
         ylabel="Number of peptides", xlabel="",
         figsize=(12, 2 + len(df_num) / 4),
         ax=axes[0],
-        xlim=[-(max_val + 1) * (11 / 10), (max_val + 1) * (11 / 10)],
         legend=False
     )
     
     axes[0].set_xlabel("Number of peptides") 
-    if (max_val > 4):
-        axes[0].set_xticks(
-            [int(max_val * i / 4) for i in range(1, 5)] + [0] +
-            [-int(max_val * i / 4) for i in range(1, 5)]
-        )
-    else:
-        axes[0].set_xticks(list(range(-int(max_val), int(max_val) + 1)))
+
+
+    max_val.append(max(
+        abs(np.max(df_prc["Weaker binding"])),
+        abs(np.min(df_prc["Stronger binding"]))
+    ))
+ 
+    df_prc.plot.barh(
+        stacked=True,
+        ylabel="Percentage of tight-binding peptides", xlabel="",
+        figsize=(12, 2 + len(df_prc) / 4),
+        ax=axes[1],
+    )
+    axes[1].legend(loc='lower right')
+    axes[1].set_xlabel("Percentage of tight-binding peptides")
+
+    # set ticks
+    for j in [0, 1]:
+        if (max_val[j] > 4):
+            border = int(max_val[j]) // 4 * 4 + 4
+            step = border // 4
+            axes[j].set_xticks(
+                [step * i for i in range(-4, 5)]
+            )
+            axes[j].set_xlim(-border * 11 / 10, border * 11 / 10)
+        else:
+            axes[j].set_xticks(list(range(-int(max_val[j]), int(max_val[j]) + 1)))
+            axes[j].set_xlim(-int(max_val[j]) - 1, int(max_val[j]) + 1)
 
     # set ticks' labels
     fig.canvas.draw()

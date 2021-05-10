@@ -134,3 +134,4 @@ config.py
 ./allprot
 .env
 db/postgresql_data/
+app/static/plots

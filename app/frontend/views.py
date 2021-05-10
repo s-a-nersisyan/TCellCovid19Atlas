@@ -38,12 +38,15 @@ def show_report_page(gisaid_id):
     df["Ref aff"] = [int(aff) if type(aff) == float else aff for aff in df["Ref aff"]]
     df["Mut aff"] = [int(aff) if type(aff) == float else aff for aff in df["Mut aff"]]
     
-    proteins = list(pd.read_csv("{}/{}/proteins.csv".format(app.config["PIPELINE_PATH"], gisaid_id))["Protein"])
+    all_proteins = list(pd.read_csv("{}/{}/proteins.csv".format(app.config["PIPELINE_PATH"], gisaid_id))["Protein"])
+    affected_proteins = set(df["Protein"])
+    affected_proteins = [p for p in all_proteins if p in affected_proteins]
    
     return render_template(
         "variant_stats.html",
         df=df, mut_df=mut_df, gisaid_id=gisaid_id,
-        proteins=proteins, alleles=alleles, allele=allele
+        all_proteins=all_proteins, affected_proteins=affected_proteins,
+        alleles=alleles, allele=allele
     )
 
 @frontend.route("/<gisaid_id>/download_report", methods=["GET"])

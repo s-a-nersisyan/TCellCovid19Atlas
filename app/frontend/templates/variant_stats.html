@@ -1,6 +1,19 @@
 <!doctype html>
 <html lang="en">
   {% include 'head.html' %}
+  <style>
+  ::-webkit-scrollbar {
+      -webkit-appearance: none;
+      width: 7px;
+      height: 7px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      background-color: rgba(0,0,0,.5);
+      -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+  }
+  </style>
 
   <body style="position: relative;">
 
@@ -21,7 +34,7 @@
           {% endif %}
           
           <ul>
-            {% for protein in proteins %}
+            {% for protein in all_proteins %}
               {% set mut_num = mut_df[mut_df["Protein"] == protein].shape[0] | int %}
               {% set mutations = "" %}
               {% set mut_protein_df = mut_df[mut_df["Protein"] == protein]["Mutation"] %}
@@ -58,6 +71,7 @@
 
           <p>
             Here we report HLA-peptide interactions whose affinity was altered by at least two folds.
+            Note that mutations with empty set of altered interactions are not showed.
           </p>
 
           {% if not allele %}
@@ -85,7 +99,7 @@
             <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '_' + allele + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ allele }}"/>
           {% endif %}
         
-          {% for protein in proteins %}
+          {% for protein in affected_proteins %}
             <h1 id="{{ protein }}">{{ protein }} protein</h1>
             
             {% if not allele %}
@@ -99,10 +113,13 @@
               {% set mut_block = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Mut block"].iloc[0] %}
               {% set block_start = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Block start"].iloc[0] | int %}
               {% set block_end = mut_df[mut_df["Protein"] == protein][mut_df["Mutation"] == mutation]["Block end"].iloc[0] | int %}
-              <p>
-                <span style="font-family: monospace;">{{ ref_block[:block_start] }}<b class="alert-primary">{{ ref_block[block_start:block_end] }}</b>{{ ref_block[block_end:] }}</span> (reference)
+              {% set aln_end = ref_block | length %} 
+              <p class="mt-3 p-3 border bg-light" style="overflow-x: scroll;">
+                <span class="text-monospace">Reference&nbsp;&nbsp;{{ ref_block[:block_start].replace("-", "&#8209;") | safe }}<b class="alert-primary">{{ ref_block[block_start:block_end].replace("-", "&#8209;") | safe }}</b>{{ ref_block[block_end:].replace("-", "&#8209;") | safe }}</span>
                 <br>
-                <span style="font-family: monospace;">{{ mut_block[:block_start] }}<b class="alert-primary" style="font-family: monospace;">{{ mut_block[block_start:block_end] }}</b>{{ mut_block[block_end:] }}</span> (mutation)
+                <span class="text-monospace">{{ ("&nbsp;"*11) | safe }}{{ "|"*block_start }}{{ ("&nbsp;"*(block_end - block_start)) | safe }}{{ "|"*(aln_end - block_end) }}</span>
+                <br>
+                <span class="text-monospace">Mutated&nbsp;&nbsp;&nbsp;&nbsp;{{ mut_block[:block_start].replace("-", "&#8209;") | safe }}<b class="alert-primary">{{ mut_block[block_start:block_end].replace("-", "&#8209;") | safe }}</b>{{ mut_block[block_end:].replace("-", "&#8209;") | safe }}</span>
               </p>
               <a class="btn btn-link" style="float: right;" href="{{gisaid_id}}/download_report" role="button">Export table in csv</a>
               

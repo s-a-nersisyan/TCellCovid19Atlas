@@ -1,13 +1,55 @@
 <!doctype html>
 <html lang="en">
-<body>
-  <h1>Welcome to the T cell COVID-19 Atlas!</h1>
+  {% include 'head.html' %}
+  <body>
+    
+    <div class="container">
 
-  The following SARS-CoV-2 variants are available:
-  <ul>
-  {% for i, row in lineages.iterrows() %}
-    <li><a href="{{ row['GISAID Accession ID'] }}"> {{ row['Lineage'] }}, GISAID accession: {{ row['GISAID Virus name'] }} ({{ row['GISAID Accession ID'] }})</a></li>
-  {% endfor %}
-  </ul>
-</body>
+      <h1 class="display-4 text-center mt-4">T-cell COVID-19 Atlas</h1>
+      <div class="lead text-center">
+        Browse how SARS-CoV-2 mutations affect
+        CD8 and CD4 T-cell epitopes
+      </div>
+      
+      <div class="my-5"></div>
+
+      <h3 class="text-center">Available variants</h3>
+
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <th>GISAID virus name</th>
+            <th>GISAID accession ID</th>
+            <th>CD8 epitopes</th>
+            <th>CD4 epitopes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i, row in lineages.iterrows() %}
+            <tr>
+              <td>{{ row['Lineage'] }}</td>
+              <td>{{ row['GISAID Virus name'] }}</td>
+              <td>{{ row['GISAID Accession ID'] }}</td>
+              <td><a href="{{ row['GISAID Accession ID'] }}">Browse</a></td>
+              <td><a href="{{ row['GISAID Accession ID'] }}">Browse</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      
+      <p>
+        If your variant of interest is not present in the table above,
+        please contact us at <a href="mailto: snersisyan@hse.ru">snersisyan@hse.ru</a>.
+      </p>
+      
+      <hr class="my-5">
+
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" />
+    <a class="github-fork-ribbon" href="https://github.com/s-a-nersisyan/TCellCovid19Atlas" target="_blank" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
+    
+    {% include 'footer.html' %}
+  </body>
 </html>

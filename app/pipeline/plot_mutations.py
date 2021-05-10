@@ -132,7 +132,7 @@ def protein_plot(gisaid_id, protein=None):
     # set ticks
     for j in [0, 1]:
         if (max_val[j] > 4):
-            border = int(max_val[j]) // 4 * 4 + 4
+            border = int(max_val[j] - 1) // 4 * 4 + 4
             step = border // 4
             axes[j].set_xticks(
                 [step * i for i in range(-4, 5)]
@@ -280,7 +280,7 @@ def allele_plot(gisaid_id, allele):
     # set ticks
     for j in [0, 1]:
         if (max_val[j] > 4):
-            border = int(max_val[j]) // 4 * 4 + 4
+            border = int(max_val[j] - 1) // 4 * 4 + 4
             step = border // 4
             axes[j].set_xticks(
                 [step * i for i in range(-4, 5)]

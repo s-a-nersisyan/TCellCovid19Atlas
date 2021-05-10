@@ -24,7 +24,7 @@ def show_report_page(gisaid_id):
     # Load report
     df = pd.read_csv("{}/{}/report.csv".format(app.config["PIPELINE_PATH"], gisaid_id))
     mut_df = pd.read_csv("{}/{}/mutations.csv".format(app.config["PIPELINE_PATH"], gisaid_id))
-    
+     
     alleles = sorted(set(df["Allele"]))
     if allele:
         df = df[df["Allele"] == allele]
@@ -38,7 +38,7 @@ def show_report_page(gisaid_id):
     df["Ref aff"] = [int(aff) if type(aff) == float else aff for aff in df["Ref aff"]]
     df["Mut aff"] = [int(aff) if type(aff) == float else aff for aff in df["Mut aff"]]
     
-    proteins = sorted(set(df["Protein"]))
+    proteins = list(pd.read_csv("{}/{}/proteins.csv".format(app.config["PIPELINE_PATH"], gisaid_id))["Protein"])
    
     return render_template(
         "variant_stats.html",

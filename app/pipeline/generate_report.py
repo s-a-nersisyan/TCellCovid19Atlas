@@ -14,6 +14,20 @@ sys.path.append("/".join(script_dir.split("/")[:-2]))
 from app import db
 from app.api.models import HLAAllelesPeptides
 
+PROTEINS = [
+    "Spike", "N", "M", "E", "NS3", "NS6",
+    "NS7a", "NS7b", "NS8", "NS9b", "NS9c",
+    "NSP1", "NSP2", "NSP3", "NSP4", "NSP5",
+    "NSP6", "NSP7", "NSP8", "NSP9", "NSP10",
+    "NSP11", "NSP12", "NSP13", "NSP14", "NSP15", "NSP16"
+]
+
+PROTEIN_SIGNIFICANCE = dict(zip(
+    PROTEINS,
+    range(len(PROTEINS))
+))
+
+
 def get_mutation(ref_seq, mut_seq, block_start, block_end, ref_numspaces, sub_type):
     if (sub_type == "sub"):
         if (block_end - block_start == 1):
@@ -250,7 +264,7 @@ for mutation in report:
     df1["Ref aff type"] = df1["Mut aff type"] = None
     
     for i, row in df1.iterrows(): 
-        if (row["Ref aff"] == None or
+        if (pd.isna(row["Ref aff"]) or
                 row["Ref aff"] >= AFFINITY_THRESHOLD1):
             df1.loc[i, "Ref aff type"] = "Weak/no binding"
         elif (row["Ref aff"] >  AFFINITY_THRESHOLD2 and
@@ -259,7 +273,7 @@ for mutation in report:
         elif (row["Ref aff"] <= AFFINITY_THRESHOLD2):
             df1.loc[i, "Ref aff type"] = "Tight binding"
 
-        if (row["Mut aff"] == None or
+        if (pd.isna(row["Mut aff"]) or
                 row["Mut aff"] >= AFFINITY_THRESHOLD1):
             df1.loc[i, "Mut aff type"] = "Weak/no binding"
         elif (row["Mut aff"] >  AFFINITY_THRESHOLD2 and
@@ -307,8 +321,12 @@ for allele in sorted(alleles):
 
 # generate protein plots
 proteins = set(df["Protein"])
-proteins.add("Summary")
-
-for protein in sorted(proteins):
+proteins = sorted(proteins, key=lambda protein: PROTEIN_SIGNIFICANCE[protein])
+for protein in proteins + ["Summary"]:
     print(gisaid_id, protein)
     protein_plot(gisaid_id, protein)
+
+proteins = pd.DataFrame(proteins, columns=["Protein"])
+proteins.to_csv("{}/proteins.csv".format(gisaid_id), index=None)
+
+

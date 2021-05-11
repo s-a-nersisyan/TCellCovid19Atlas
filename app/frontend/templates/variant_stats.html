@@ -93,17 +93,17 @@
               of tight binders for each allele. The results are showed in the right part of the figure.
               Protein-specific plots are listed below.
             </p>
-            <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '_Summary' + '.png') }}" class="img-fluid" width="100% / 8" alt="Summary"/>
+            <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + 'Summary' + '.png') }}" class="img-fluid" width="100% / 8" alt="Summary"/>
           {% else %}
             <h3>The total number of interactions between {{ allele }} and peptides affected by the mutations</h3>
-            <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '_' + allele + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ allele }}"/>
+            <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + allele + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ allele }}"/>
           {% endif %}
         
           {% for protein in affected_proteins %}
             <h1 id="{{ protein }}">{{ protein }} protein</h1>
             
             {% if not allele %}
-              <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '_' + protein + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ protein }}"/>
+              <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + protein + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ protein }}"/>
             {% endif %}
 
             {% set protein_df = df[df["Protein"] == protein]%}

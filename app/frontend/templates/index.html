@@ -31,8 +31,8 @@
               <td>{{ row['Lineage'] }}</td>
               <td>{{ row['GISAID Virus name'] }}</td>
               <td>{{ row['GISAID Accession ID'] }}</td>
-              <td><a href="{{ row['GISAID Accession ID'] }}">Browse</a></td>
-              <td><a href="{{ row['GISAID Accession ID'] }}">Browse</a></td>
+              <td><a href="{{ row['GISAID Accession ID'] }}?hla_class=HLA-I">Browse</a></td>
+              <td><a href="{{ row['GISAID Accession ID'] }}?hla_class=HLA-II">Browse</a></td>
             </tr>
           {% endfor %}
         </tbody>

@@ -15,8 +15,9 @@ OUT_DIR=$(pwd)/$GISAID_ID
 python3 extract_novel_peptides.py $GISAID_ID
 ../../scripts/HLA_peptide_binding/predict_HLA-I_affinities.bash \
 	$GISAID_ID/novel_peptides_HLA-I.csv 1 $GISAID_ID
-#../../scripts/HLA_peptide_binding/predict_HLA-II_affinities.bash \
-#	$GISAID_ID/novel_peptides_HLA-II.csv 1 $GISAID_ID
+
+../../scripts/HLA_peptide_binding/predict_HLA-II_affinities.bash \
+	$GISAID_ID/novel_peptides_HLA-II.csv 1 $GISAID_ID
 
 # Write the results in DB
 python3 update_db_affinities.py $GISAID_ID

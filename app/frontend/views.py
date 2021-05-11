@@ -20,9 +20,12 @@ def show_index():
 @frontend.route("/<gisaid_id>", methods=["GET"])
 def show_report_page(gisaid_id):
     allele = request.args.get("allele")
-    
+    hla_class = request.args.get("hla_class")
+    if not hla_class:
+        hla_class = "HLA-I"
+
     # Load report
-    df = pd.read_csv("{}/{}/report.csv".format(app.config["PIPELINE_PATH"], gisaid_id))
+    df = pd.read_csv("{}/{}/report_{}.csv".format(app.config["PIPELINE_PATH"], gisaid_id, hla_class))
     mut_df = pd.read_csv("{}/{}/mutations.csv".format(app.config["PIPELINE_PATH"], gisaid_id))
      
     alleles = sorted(set(df["Allele"]))
@@ -46,7 +49,7 @@ def show_report_page(gisaid_id):
         "variant_stats.html",
         df=df, mut_df=mut_df, gisaid_id=gisaid_id,
         all_proteins=all_proteins, affected_proteins=affected_proteins,
-        alleles=alleles, allele=allele
+        alleles=alleles, allele=allele, hla_class=hla_class
     )
 
 @frontend.route("/<gisaid_id>/download_report", methods=["GET"])

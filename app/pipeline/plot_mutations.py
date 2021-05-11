@@ -22,12 +22,13 @@ mpl.rcParams["figure.dpi"] = 300
 
 AFFINITY_THRESHOLD = 50
 
-def protein_plot(gisaid_id, protein=None):
-    report = pd.read_csv("{}/report.csv".format(
-        gisaid_id
+def protein_plot(gisaid_id, hla_class, protein,):
+    report = pd.read_csv("{}/report_{}.csv".format(
+        gisaid_id,
+        hla_class
     ))
     
-    if (protein != None and protein != "Summary"):
+    if (protein != "Summary"):
         report = report[report["Protein"] == protein]
     
     report = report.fillna(np.inf)
@@ -156,12 +157,13 @@ def protein_plot(gisaid_id, protein=None):
     
     plt.tight_layout()
     
-    if (protein == None):
-        protein = "Summary"
+    # if (protein == None):
+    #     protein = "Summary"
     
     plt.savefig(
-        "../static/plots/{}_{}.png".format(
+        "../static/plots/{}/{}/{}.png".format(
             gisaid_id,
+            hla_class,
             protein
         )
     )
@@ -169,9 +171,10 @@ def protein_plot(gisaid_id, protein=None):
     plt.close()
 
 
-def allele_plot(gisaid_id, allele):
-    report = pd.read_csv("{}/report.csv".format(
-        gisaid_id
+def allele_plot(gisaid_id, hla_class, allele):
+    report = pd.read_csv("{}/report_{}.csv".format(
+        gisaid_id,
+        hla_class
     ))
     
     report = report[report["Allele"] == allele]
@@ -304,8 +307,9 @@ def allele_plot(gisaid_id, allele):
     plt.tight_layout()
         
     plt.savefig(
-        "../static/plots/{}_{}.png".format(
+        "../static/plots/{}/{}/{}.png".format(
             gisaid_id,
+            hla_class,
             allele
         )
     )

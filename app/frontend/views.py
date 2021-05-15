@@ -52,11 +52,13 @@ def show_report_page(gisaid_id):
         alleles=alleles, allele=allele, hla_class=hla_class
     )
 
-@frontend.route("/<gisaid_id>/download_report", methods=["GET"])
-def download_report(gisaid_id):
+@frontend.route("/<gisaid_id>/download", methods=["GET"])
+def download(gisaid_id):
+    hla_class = request.args.get("hla_class")
+    ident = request.args.get("type")
     
     # Load report
-    with open("{}/{}/report.csv".format(app.config["PIPELINE_PATH"], gisaid_id)) as rf:
+    with open("{}/{}/report_{}.csv".format(app.config["PIPELINE_PATH"], gisaid_id, hla_class)) as rf:
         report = rf.read()
     
     return Response(
@@ -67,4 +69,5 @@ def download_report(gisaid_id):
             "attachment; filename={}.csv".format(gisaid_id)
         }
     )
-
+    
+    

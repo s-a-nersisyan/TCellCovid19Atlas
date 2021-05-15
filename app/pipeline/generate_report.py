@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 from natsort import natsorted
-
 from plot_mutations import protein_plot, allele_plot
 
 import json
@@ -12,7 +11,7 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 sys.path.append("/".join(script_dir.split("/")[:-2]))
 
 from app import db
-from app.api.models import HLAAllelesPeptides
+from app.api.models import HLAAllelesPeptides, HLAAlleles
 
 PROTEINS = [
     "Spike", "N", "M", "E", "NS3", "NS6",
@@ -121,7 +120,7 @@ peptide_len_range = {
 }
 
 # The following block was added by dude
-for hla_class in ["HLA-II", "HLA-I"]:       
+for hla_class in ["HLA-I", "HLA-II"]:       
     df = pd.read_csv("{}/diff_{}.csv".format(gisaid_id, hla_class))
 
     ref_aln = open("{}/ref_aln.fasta".format(gisaid_id))
@@ -168,8 +167,8 @@ for hla_class in ["HLA-II", "HLA-I"]:
             mutation = get_mutation(ref_seq, mut_seq, block_start,
                     block_end, ref_numspaces, sub_type)
             
-            ref_block = ref_seq[max(0, block_start - 10):min(len(ref_seq), block_end + 10)]
-            mut_block = mut_seq[max(0, block_start - 10):min(len(mut_seq), block_end + 10)]
+            ref_block = ref_seq[max(0, block_start - 25):min(len(ref_seq), block_end + 25)]
+            mut_block = mut_seq[max(0, block_start - 25):min(len(mut_seq), block_end + 25)]
 
             mutations.append([ref_protein, block_start, block_end, mutation, ref_block, mut_block])
 
@@ -199,9 +198,36 @@ for hla_class in ["HLA-II", "HLA-I"]:
                 db.session.rollback()
 
             for ref_hla_pep, mut_hla_pep in zip(ref_hla_pep_iter, mut_hla_pep_iter):
-                hla_allele = ref_hla_pep.hla_allele if ref_hla_pep else None
-                if not hla_allele:
-                    hla_allele = mut_hla_pep.hla_allele
+                if (ref_hla_pep != None or mut_hla_pep != None):
+                    hla_allele = ref_hla_pep.hla_allele
+                    
+                    try:
+                        hla_flag = HLAAlleles.query.filter(
+                            HLAAlleles.hla_allele == ref_hla_pep.hla_allele
+                        ).filter(HLAAlleles.HLA_class == hla_class.split("-")[-1]).count()
+                            
+                        hla_flag = hla_flag and HLAAlleles.query.filter(
+                            HLAAlleles.hla_allele == mut_hla_pep.hla_allele
+                        ).filter(HLAAlleles.HLA_class == hla_class.split("-")[-1]).count()
+                    except:
+                        hla_flag = 0
+                        db.session.rollback()
+                else:
+                    hla_allele = ref_hla_pep.hla_allele if ref_hla_pep else None
+                    if not hla_allele:
+                        hla_allele = mut_hla_pep.hla_allele
+
+                    try:
+                        hla_flag = HLAAlleles.query.filter(
+                            HLAAlleles.hla_allele == hla_allele
+                        ).filter(HLAAlleles.HLA_class == hla_class.split("-")[-1]).count()
+                    except:
+                        hla_flag = 0
+                        db.session.rollback()
+
+                if not hla_flag:
+                    print(hla_allele, hla_class.split("-")[-1])
+                    continue
 
                 ref_aff = ref_hla_pep.affinity if ref_hla_pep else None
                 mut_aff = mut_hla_pep.affinity if mut_hla_pep else None
@@ -210,10 +236,12 @@ for hla_class in ["HLA-II", "HLA-I"]:
                     continue
                 if not mut_aff and ref_aff > AFFINITY_THRESHOLD1:
                     continue
+
                 #if ref_aff and mut_aff and \
                 #    not ((ref_aff <= AFFINITY_THRESHOLD1 and mut_aff > AFFINITY_THRESHOLD2) or \
                 #    (ref_aff > AFFINITY_THRESHOLD2 and mut_aff <= AFFINITY_THRESHOLD1)):
                 #    continue
+                
                 if ref_aff and mut_aff and ref_aff > AFFINITY_THRESHOLD1 and mut_aff > AFFINITY_THRESHOLD1:
                     continue
 
@@ -295,6 +323,10 @@ for hla_class in ["HLA-II", "HLA-I"]:
         df = pd.concat([df, df1])
 
     df.to_csv("{}/report_{}.csv".format(gisaid_id, hla_class), index=None)
+
+    # create tables dir    
+    if not os.path.exists("../static/tables/{}/{}/".format(gisaid_id, hla_class)):
+        os.makedirs("../static/tables/{}/{}/".format(gisaid_id, hla_class))
     
     # create plots dir    
     if not os.path.exists("../static/plots/{}/{}/".format(gisaid_id, hla_class)):
@@ -306,10 +338,14 @@ for hla_class in ["HLA-II", "HLA-I"]:
     for allele in sorted(alleles):
         if ("/" in allele):
             identificator = allele.split("/")[0]
-            print(identificator)
             if not os.path.exists("../static/plots/{}/{}/{}".format(
                     gisaid_id, hla_class, identificator)):
                 os.makedirs("../static/plots/{}/{}/{}".format(
+                    gisaid_id, hla_class, identificator))
+                       
+            if not os.path.exists("../static/tables/{}/{}/{}".format(
+                    gisaid_id, hla_class, identificator)):
+                os.makedirs("../static/tables/{}/{}/{}".format(
                     gisaid_id, hla_class, identificator))
 
         print(gisaid_id, allele, hla_class)
@@ -342,8 +378,8 @@ for hla_class in ["HLA-II", "HLA-I"]:
 
         mut_df.loc[len(mut_df)] = [
             protein,
-            start - (max(0, start - 10)),
-            end - (max(0, start - 10)),
+            start - (max(0, start - 25)),
+            end - (max(0, start - 25)),
             mut, ref_block, mut_block
         ]
 

@@ -44,10 +44,14 @@ def show_report_page(gisaid_id):
     all_proteins = list(pd.read_csv("{}/{}/proteins.csv".format(app.config["PIPELINE_PATH"], gisaid_id))["Protein"])
     affected_proteins = set(df["Protein"])
     affected_proteins = [p for p in all_proteins if p in affected_proteins]
+    
+    # Get variant name by gisaid id
+    lineages = pd.read_csv("{}/lineages.csv".format(app.config["PIPELINE_PATH"]))
+    lineage = lineages.loc[lineages["GISAID Accession ID"] == gisaid_id, "Lineage"].iloc[0]
    
     return render_template(
         "variant_stats.html",
-        df=df, mut_df=mut_df, gisaid_id=gisaid_id,
+        df=df, mut_df=mut_df, gisaid_id=gisaid_id, lineage=lineage,
         all_proteins=all_proteins, affected_proteins=affected_proteins,
         alleles=alleles, allele=allele, hla_class=hla_class
     )

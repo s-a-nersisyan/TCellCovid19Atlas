@@ -12,7 +12,7 @@ class Peptides(db.Model):
 
 
 class PeptidesPositions(db.Model):
-    peptide = db.Column(db.Text, db.ForeignKey('peptides.peptide'), primary_key=True, index=True)
+    peptide = db.Column(db.Text, db.ForeignKey('peptides.peptide', ondelete='CASCADE'), primary_key=True, index=True)
     protein = db.Column(db.Text, primary_key=True, index=True)
     start = db.Column(db.SmallInteger, primary_key=True, index=True)
     end = db.Column(db.SmallInteger, primary_key=True, index=True)
@@ -20,6 +20,6 @@ class PeptidesPositions(db.Model):
 
 
 class HLAAllelesPeptides(db.Model):
-    hla_allele = db.Column(db.Text, db.ForeignKey('hla_alleles.hla_allele'), primary_key=True, index=True)
-    peptide = db.Column(db.Text, db.ForeignKey('peptides.peptide'), primary_key=True, index=True)
+    hla_allele = db.Column(db.Text, db.ForeignKey('hla_alleles.hla_allele', ondelete='CASCADE'), primary_key=True, index=True)
+    peptide = db.Column(db.Text, db.ForeignKey('peptides.peptide', ondelete='CASCADE'), primary_key=True, index=True)
     affinity = db.Column(db.SmallInteger, nullable=False, index=True)

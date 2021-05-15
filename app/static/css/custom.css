@@ -1,3 +1,5 @@
+/* Scrollbar */
+
 ::-webkit-scrollbar {
   -webkit-appearance: none;
   width: 7px;
@@ -10,6 +12,40 @@
   -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
 }
 
+/* Variant statistics page */
+
+.topmenu {
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, .1);
+}
+
+.variant_stats h1[id] {
+  padding-top: 56px;
+}
+
+.sidebar {
+  position: fixed;
+  top: 56px;
+  bottom: 0;
+  left: 0;
+  z-index: 100; /* Behind the navbar */
+  box-shadow: inset -1px 0 0 rgba(0, 0, 0, .1);
+}
+
+@media (max-width: 767.98px) {
+  .sidebar {
+    top: 5rem;
+  }
+}
+
+.sidebar-sticky {
+  position: relative;
+  top: 0;
+  height: calc(100vh - 56px);
+  overflow-x: hidden;
+  overflow-y: auto; /* Scrollable contents if viewport is shorter than content. */
+}
+
+/* Footer */
 
 footer img {
   height: 75px;

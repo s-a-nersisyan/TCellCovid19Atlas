@@ -19,20 +19,28 @@
         <thead>
           <tr>
             <th>Variant</th>
-            <th>GISAID virus name</th>
-            <th>GISAID accession ID</th>
-            <th>CD8 epitopes</th>
-            <th>CD4 epitopes</th>
+            <th>Common name</th>
+            <th>Date</th>
+            <th>GISAID accession</th>
+            <th>T-cell epitopes</th>
           </tr>
         </thead>
         <tbody>
           {% for i, row in lineages.iterrows() %}
             <tr>
               <td>{{ row['Lineage'] }}</td>
-              <td>{{ row['GISAID Virus name'] }}</td>
-              <td>{{ row['GISAID Accession ID'] }}</td>
-              <td><a href="{{ row['GISAID Accession ID'] }}?hla_class=HLA-I">Browse</a></td>
-              <td><a href="{{ row['GISAID Accession ID'] }}?hla_class=HLA-II">Browse</a></td>
+              <td>{{ row['Common name'] }}</td>
+              <td>{{ row['Date'] }}</td>
+              <td>
+                {{ row['GISAID Virus name'] }}
+                <br>
+                {{ row['GISAID Accession ID'] }}
+              </td>
+              <td>
+                <a href="{{ row['GISAID Accession ID'] }}?hla_class=HLA-I">
+                  Browse&nbsp;<i class="bi bi-chevron-right"></i>
+                </a>
+              </td>
             </tr>
           {% endfor %}
         </tbody>

@@ -95,15 +95,15 @@
               Protein-specific plots are listed below.
             </p>
             <div class="btn-group" role="group" style="float: right;">
-              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + 'Summary' + '.png') }}" role="button" download>Download figure</a>  
-              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='tables/' + gisaid_id + '/' + hla_class + '/' + 'Summary' + '.csv') }}" role="button" download>Export data in csv</a>
+              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + 'Summary' + '.png') }}" role="button" download>Download figure&nbsp;<i class="bi bi-download"></i></a>  
+              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='tables/' + gisaid_id + '/' + hla_class + '/' + 'Summary' + '.csv') }}" role="button" download>Export data to csv&nbsp;<i class="bi bi-download"></i></a>
             </div>
             <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + 'Summary' + '.png') }}" class="img-fluid" width="100% / 8" alt="Summary"/>
           {% else %}
             <h3>The total number of interactions between {{ allele }} and peptides affected by the mutations</h3>
             <div class="btn-group" role="group" style="float: right;">
-              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + allele + '.png') }}" role="button" download>Download figure</a>  
-              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='tables/' + gisaid_id + '/' + hla_class + '/' + allele + '.csv') }}" role="button" download>Export data in csv</a>
+              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + allele + '.png') }}" role="button" download>Download figure&nbsp;<i class="bi bi-download"></i></a>  
+              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='tables/' + gisaid_id + '/' + hla_class + '/' + allele + '.csv') }}" role="button" download>Export data to csv&nbsp;<i class="bi bi-download"></i></a>
             </div> 
             <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + allele + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ allele }}"/>
           {% endif %}
@@ -113,8 +113,8 @@
             
             {% if not allele %}
               <div class="btn-group" role="group" style="float: right;">
-                <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + protein + '.png') }}" role="button" download>Download figure</a>
-                <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='tables/' + gisaid_id + '/' + hla_class + '/' + protein + '.csv') }}" role="button" download>Export data in csv</a>
+                <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + protein + '.png') }}" role="button" download>Download figure&nbsp;<i class="bi bi-download"></i></a>
+                <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='tables/' + gisaid_id + '/' + hla_class + '/' + protein + '.csv') }}" role="button" download>Export data to csv&nbsp;<i class="bi bi-download"></i></a>
               </div> 
               <img src="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + protein + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ protein }}"/>
             {% endif %}
@@ -134,7 +134,7 @@
                 <br>
                 <span class="text-monospace">Mutated&nbsp;&nbsp;&nbsp;&nbsp;{{ mut_block[:block_start].replace("-", "&#8209;") | safe }}<b class="alert-primary">{{ mut_block[block_start:block_end].replace("-", "&#8209;") | safe }}</b>{{ mut_block[block_end:].replace("-", "&#8209;") | safe }}</span>
               </p>
-              <a class="btn btn-link" style="float: right;" href="{{gisaid_id}}/download?hla_class={{ hla_class }}" role="button">Export table in csv</a>
+              <a class="btn btn-link" style="float: right;" href="{{gisaid_id}}/download?hla_class={{ hla_class }}" role="button" download>Export table to csv&nbsp;<i class="bi bi-download"></i></a>
               
               <table class="table table-bordered table-striped">
                 <thead>

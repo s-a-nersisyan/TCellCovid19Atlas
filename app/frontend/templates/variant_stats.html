@@ -105,10 +105,38 @@
           {% else %}
             <h3>The total number of interactions between {{ allele }} and peptides affected by the mutations</h3>
             <p>
-              Weaker binding (two or more times) was found for m epitopes, while stronger binding was found for n entries.
-              There are k tight binders for the {{ allele }} in the reference immunopeptidome (IC<sub>50</sub> affinity &leq; 50 nM);
-              p of them became non-tight binders (x%), and q novel tight binders appeared (y%). Note, that we used + 1 regularization term
-              in the denominators while calculating percentages.
+              Weaker binding (two or more times) 
+              {% if allele_summary["Number of weaker binding"] == 0 %}
+                was not found,
+              {% elif allele_summary["Number of weaker binding"] == 1 %}
+                was found for 1 epitope,
+              {% else %}
+                was found for {{ allele_summary["Number of weaker binding"] }} epitopes,
+              {% endif %}
+              while stronger binding
+              {% if allele_summary["Number of stronger binding"] == 0 %}
+                was not found too.
+              {% elif allele_summary["Number of stronger binding"] == 1 %}
+                was found for 1 entrie.
+              {% else %}
+                was found for {{ allele_summary["Number of stronger binding"] }} entries.
+              {% endif %} 
+              There
+              {% if allele_summary["Number of tight binding"] == 0 %}
+                is no tight binders for the {{ allele }} in the reference immunopeptidome (IC<sub>50</sub> affinity &leq; 50 nM).
+              {% else %}
+                {% if allele_summary["Number of tight binding"] == 1 %}
+                  is 1 tight binder for the {{ allele }} in the reference immunopeptidome (IC<sub>50</sub> affinity &leq; 50 nM);
+                {% else %}
+                  are {{ allele_summary["Number of tight binding"] }} tight binders for the {{ allele }} in the reference immunopeptidome (IC<sub>50</sub> affinity &leq; 50 nM);
+                {% endif %}
+                {{ allele_summary["Number of weaker tight binding"] }} of them became non-tight binders ({{ allele_summary["Number of stronger tight binding"] / (allele_summary["Number of tight binding"] + 1) }}%), and 
+                {% if allele_summary["Number of stronger tight binding"] == 1 %}
+                  1 novel tight binder appeared ({{ 1 / (allele_summary["Number of tight binding"] + 1) }}%).
+                {% else %}
+                  {{ allele_summary["Number of stronger tight binding"] }} novel tight binder appeared ({{ allele_summary["Number of stronger tight binding"] / (allele_summary["Number of tight binding"] + 1) }}%).
+                {% endif %}
+              {% endif %}
             </p>
 
             <div class="btn-group" role="group" style="float: right;">

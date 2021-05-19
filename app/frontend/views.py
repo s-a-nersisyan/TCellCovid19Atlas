@@ -27,11 +27,15 @@ def show_report_page(gisaid_id):
     # Load report
     df = pd.read_csv("{}/{}/report_{}.csv".format(app.config["PIPELINE_PATH"], gisaid_id, hla_class))
     mut_df = pd.read_csv("{}/{}/mutations.csv".format(app.config["PIPELINE_PATH"], gisaid_id))
-     
+
     alleles = sorted(set(df["Allele"]))
     if allele:
         df = df[df["Allele"] == allele]
-    
+        allele_summary = pd.read_csv("{}/tables/{}/{}/Summary.csv".format(app.config["STATIC_PATH"], gisaid_id, hla_class))
+        allele_summary = allele_summary[allele_summary["Allele"] == allele].to_dict(orient="records")[0]
+    else:
+        allele_summary=None
+
     df["Ref peptide"] = df["Ref peptide"].fillna("-")
     df["Mut peptide"] = df["Mut peptide"].fillna("-")
     
@@ -51,7 +55,7 @@ def show_report_page(gisaid_id):
    
     return render_template(
         "variant_stats.html",
-        df=df, mut_df=mut_df, gisaid_id=gisaid_id, lineage=lineage,
+        df=df, mut_df=mut_df, allele_summary=allele_summary, gisaid_id=gisaid_id, lineage=lineage,
         all_proteins=all_proteins, affected_proteins=affected_proteins,
         alleles=alleles, allele=allele, hla_class=hla_class
     )

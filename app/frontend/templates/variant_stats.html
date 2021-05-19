@@ -91,7 +91,10 @@
               presentation. To the contrary, low number of vanished peptides could be important if the particular
               allele initially had narrow epitope repertoire. To account for this effect, we normalized the absolute
               numbers of new/vanished tight binders (IC<sub>50</sub> affinity &leq; 50 nM) by the total number
-              of tight binders for each allele. The results are showed in the right part of the figure.
+              of tight binders for each allele. To avoid possible divisions by zero, we used + 1 regularization term
+              in all denominators. For example, if some allele had no tight binders in the reference genome,
+              and three new tight binders appeared as a result of the mutation, the relative increase will be 300%.
+              The results are showed in the right part of the figure.
               Protein-specific plots are listed below.
             </p>
             <div class="btn-group" role="group" style="float: right;">

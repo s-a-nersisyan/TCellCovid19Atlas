@@ -38,3 +38,4 @@ mkdir -p $(pwd)/db/postgresql_data
 sudo echo '{"iptables": false}' > /etc/docker/daemon.json
 
 sudo apt-get install tcsh, parallel
+sudo apt-get install apache2, libapache2-mod-wsgi-py3

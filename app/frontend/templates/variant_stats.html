@@ -104,6 +104,13 @@
             <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + 'Summary' + '.png') }}" class="img-fluid" width="100% / 8" alt="Summary"/>
           {% else %}
             <h3>The total number of interactions between {{ allele }} and peptides affected by the mutations</h3>
+            <p>
+              Weaker binding (two or more times) was found for m epitopes, while stronger binding was found for n entries.
+              There are k tight binders for the {{ allele }} in the reference immunopeptidome (IC<sub>50</sub> affinity &leq; 50 nM);
+              p of them became non-tight binders (x%), and q novel tight binders appeared (y%). Note, that we used + 1 regularization term
+              in the denominators while calculating percentages.
+            </p>
+
             <div class="btn-group" role="group" style="float: right;">
               <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + allele + '.png') }}" role="button" download>Download figure&nbsp;<i class="bi bi-download"></i></a>  
               <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='tables/' + gisaid_id + '/' + hla_class + '/' + allele + '.csv') }}" role="button" download>Export data to csv&nbsp;<i class="bi bi-download"></i></a>

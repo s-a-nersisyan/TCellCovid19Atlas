@@ -198,7 +198,7 @@ for hla_class in ["HLA-I", "HLA-II"]:
                 db.session.rollback()
 
             for ref_hla_pep, mut_hla_pep in zip(ref_hla_pep_iter, mut_hla_pep_iter):
-                if (ref_hla_pep != None or mut_hla_pep != None):
+                if (ref_hla_pep != None and mut_hla_pep != None):
                     hla_allele = ref_hla_pep.hla_allele
                     
                     try:
@@ -321,7 +321,7 @@ for hla_class in ["HLA-I", "HLA-II"]:
                 df1.loc[i, "Mut aff type"] = "Tight binding"
 
         df = pd.concat([df, df1])
-
+    
     df.to_csv("{}/report_{}.csv".format(gisaid_id, hla_class), index=None)
 
     # create tables dir    

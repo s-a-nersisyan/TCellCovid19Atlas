@@ -21,6 +21,23 @@ mpl.rcParams["font.sans-serif"] = "Arial"
 mpl.rcParams["figure.dpi"] = 300
 
 AFFINITY_THRESHOLD = 50
+REFERENCE_GISAID_ID = "EPI_ISL_402125"
+
+# copied from generate_plot.py
+PROTEINS = [
+    "Spike", "N", "M", "E", "NS3", "NS6",
+    "NS7a", "NS7b", "NS8", "NS9b", "NS9c",
+    "NSP1", "NSP2", "NSP3", "NSP4", "NSP5",
+    "NSP6", "NSP7", "NSP8", "NSP9", "NSP10",
+    "NSP11", "NSP12", "NSP13", "NSP14", "NSP15", "NSP16"
+]
+
+PROTEIN_SIGNIFICANCE = dict(zip(
+    PROTEINS,
+    range(len(PROTEINS))
+))
+# end of the block
+
 
 def protein_plot(gisaid_id, hla_class, protein,):
     report = pd.read_csv("{}/report_{}.csv".format(
@@ -38,6 +55,8 @@ def protein_plot(gisaid_id, hla_class, protein,):
     tight_binders = db.session.query(
         PeptidesPositions,
         HLAAllelesPeptides
+    ).filter(
+        PeptidesPositions.gisaid_id == REFERENCE_GISAID_ID
     ).filter(HLAAllelesPeptides.affinity <= AFFINITY_THRESHOLD)
     if (protein != None and protein != "Summary"):
         tight_binders = tight_binders.filter(
@@ -46,7 +65,7 @@ def protein_plot(gisaid_id, hla_class, protein,):
     
     
     df_num = pd.DataFrame(columns=["Allele", "Weaker binding", "Stronger binding"])
-    df_prc = pd.DataFrame(columns=["Allele", "Weaker binding", "Stronger binding"])
+    df_prc = pd.DataFrame(columns=["Allele", "Weaker binding", "Stronger binding", "Tight binding"])
     for allele in sorted(alleles):
         tight_binders_num = tight_binders.filter(
             HLAAllelesPeptides.hla_allele == allele
@@ -64,17 +83,10 @@ def protein_plot(gisaid_id, hla_class, protein,):
             (report["Mut aff"] <= AFFINITY_THRESHOLD)
         ])
         
-        increase = increase / (tight_binders_num + 1) * 100
-        decrease = decrease / (tight_binders_num + 1) * 100
+        # increase = increase / (tight_binders_num + 1) * 100
+        # decrease = decrease / (tight_binders_num + 1) * 100
         
-        # if (tight_binders_num == 0):
-        #     increase = decrease = 0
-        # else:
-        #     increase = increase / tight_binders_num * 100
-        #     decrease = decrease / tight_binders_num * 100
-        
-        df_prc.loc[len(df_prc)] = [allele, increase, decrease]
-    
+        df_prc.loc[len(df_prc)] = [allele, increase, decrease, tight_binders_num] 
     
         increase = len(report[
             (report["Allele"] == allele) &
@@ -113,14 +125,23 @@ def protein_plot(gisaid_id, hla_class, protein,):
         ax=axes[0],
         legend=False
     )
- 
+    
+    axes[0].set_xlabel("Number of peptides") 
 
+
+    df_prc_draw = df_prc.copy()
+    df_prc_draw["Weaker binding"] = df_prc_draw["Weaker binding"] /\
+            (df_prc_draw["Tight binding"] + 1) * 100
+    df_prc_draw["Stronger binding"] = df_prc_draw["Stronger binding"] /\
+            (df_prc_draw["Tight binding"] + 1) * 100
+    df_prc_draw = df_prc_draw[["Weaker binding", "Stronger binding"]]
+    
     max_val.append(max(
-        abs(np.max(df_prc["Weaker binding"])),
-        abs(np.min(df_prc["Stronger binding"]))
+        abs(np.max(df_prc_draw["Weaker binding"])),
+        abs(np.min(df_prc_draw["Stronger binding"]))
     ))
-   
-    df_prc.plot.barh(
+ 
+    df_prc_draw.plot.barh(
         stacked=True,
         ylabel="Percentage of tight-binding peptides", xlabel="",
         figsize=(12, 2 + len(df_prc) / 4),
@@ -157,9 +178,6 @@ def protein_plot(gisaid_id, hla_class, protein,):
     
     plt.tight_layout()
     
-    # if (protein == None):
-    #     protein = "Summary"
-    
     plt.savefig(
         "../static/plots/{}/{}/{}.png".format(
             gisaid_id,
@@ -169,6 +187,29 @@ def protein_plot(gisaid_id, hla_class, protein,):
     )
     
     plt.close()
+
+    # save tables
+    df_num["Stronger binding"] = -df_num["Stronger binding"]
+    df_num = df_num.rename({
+        "Weaker binding" : "Number of weaker binding",
+        "Stronger binding" : "Number of stronger binding"
+    }, axis="columns")
+    
+    df_prc["Stronger binding"] = -df_prc["Stronger binding"]
+    df_prc = df_prc.rename({
+        "Weaker binding" : "Number of weaker tight binding",
+        "Stronger binding" : "Number of stronger tight binding",
+        "Tight binding" : "Number of tight binding"
+    }, axis="columns")
+    
+    df_num = df_num.drop(["Allele"], axis="columns")
+    df_prc = df_prc.drop(["Allele"], axis="columns")
+    df = df_num.merge(df_prc, left_index=True, right_index=True)
+ 
+    df.to_csv("../static/tables/{}/{}/{}.csv".format(
+        gisaid_id, hla_class, protein
+    ))
+
 
 
 def allele_plot(gisaid_id, hla_class, allele):
@@ -187,13 +228,15 @@ def allele_plot(gisaid_id, hla_class, allele):
         PeptidesPositions,
         HLAAllelesPeptides
     ).filter(
+        PeptidesPositions.gisaid_id == REFERENCE_GISAID_ID
+    ).filter(
         HLAAllelesPeptides.hla_allele == allele
     ).filter(
         HLAAllelesPeptides.affinity <= AFFINITY_THRESHOLD   
     )
  
     df_num = pd.DataFrame(columns=["Protein", "Weaker binding", "Stronger binding"])
-    df_prc = pd.DataFrame(columns=["Protein", "Weaker binding", "Stronger binding"])
+    df_prc = pd.DataFrame(columns=["Protein", "Weaker binding", "Stronger binding", "Tight binding"])
 
     for protein in sorted(proteins):
         tight_binders_num = tight_binders.filter(
@@ -207,22 +250,16 @@ def allele_plot(gisaid_id, hla_class, allele):
         ])
     
         decrease = len(report[
-            (report["Allele"] == protein) &
+            (report["Protein"] == protein) &
             (report["Ref aff"] > AFFINITY_THRESHOLD) &
             (report["Mut aff"] <= AFFINITY_THRESHOLD)
         ])
         
-        # if (tight_binders_num == 0):
-        #     increase = decrease = 0
-        # else:
-        #     increase = increase / tight_binders_num * 100
-        #     decrease = decrease / tight_binders_num * 100
-        
-        increase = increase / (tight_binders_num + 1) * 100
-        decrease = decrease / (tight_binders_num + 1) * 100
+        # increase = increase / (tight_binders_num + 1) * 100
+        # decrease = decrease / (tight_binders_num + 1) * 100
     
 
-        df_prc.loc[len(df_prc)] = [protein, increase, decrease]
+        df_prc.loc[len(df_prc)] = [protein, increase, decrease, tight_binders_num]
      
         increase = len(report[
             (report["Protein"] == protein) &
@@ -240,11 +277,13 @@ def allele_plot(gisaid_id, hla_class, allele):
     df_prc = df_prc.set_index(df_prc["Protein"])
     df_prc["Stronger binding"] = -df_prc["Stronger binding"]
     
+    df_num["Sort"] = [PROTEIN_SIGNIFICANCE[row["Protein"]] for _, row in df_num.iterrows()]
+    df_num = df_num.sort_values("Sort", ascending="False")
+    df_num = df_num.drop(columns=["Sort"])
     df_num = df_num.set_index(df_num["Protein"])
-    df_num = df_num.sort_values(by=["Weaker binding", "Stronger binding"], ascending=True)
     df_num["Stronger binding"] = -df_num["Stronger binding"]
     df_prc = df_prc.loc[df_num.index]
-    
+   
     
     sns.set()
     fig, axes = plt.subplots(nrows=1, ncols=2)
@@ -254,7 +293,7 @@ def allele_plot(gisaid_id, hla_class, allele):
         abs(np.max(df_num["Weaker binding"])),
         abs(np.min(df_num["Stronger binding"]))
     ))
-    
+
     df_num.plot.barh(
         stacked=True,
         ylabel="Number of peptides", xlabel="",
@@ -265,13 +304,20 @@ def allele_plot(gisaid_id, hla_class, allele):
     
     axes[0].set_xlabel("Number of peptides") 
 
-
+        
+    df_prc_draw = df_prc.copy()
+    df_prc_draw["Weaker binding"] = df_prc_draw["Weaker binding"] /\
+            (df_prc_draw["Tight binding"] + 1) * 100
+    df_prc_draw["Stronger binding"] = df_prc_draw["Stronger binding"] /\
+            (df_prc_draw["Tight binding"] + 1) * 100
+    df_prc_draw = df_prc_draw[["Weaker binding", "Stronger binding"]]
+    
     max_val.append(max(
-        abs(np.max(df_prc["Weaker binding"])),
-        abs(np.min(df_prc["Stronger binding"]))
+        abs(np.max(df_prc_draw["Weaker binding"])),
+        abs(np.min(df_prc_draw["Stronger binding"]))
     ))
- 
-    df_prc.plot.barh(
+
+    df_prc_draw.plot.barh(
         stacked=True,
         ylabel="Percentage of tight-binding peptides", xlabel="",
         figsize=(12, 2 + len(df_prc) / 4),
@@ -316,3 +362,24 @@ def allele_plot(gisaid_id, hla_class, allele):
     
     plt.close()
 
+    # save tables
+    df_num["Stronger binding"] = -df_num["Stronger binding"]
+    df_num = df_num.rename({
+        "Weaker binding" : "Number of weaker binding",
+        "Stronger binding" : "Number of stronger binding"
+    }, axis="columns")
+    
+    df_prc["Stronger binding"] = -df_prc["Stronger binding"]
+    df_prc = df_prc.rename({
+        "Weaker binding" : "Number of weaker tight binding",
+        "Stronger binding" : "Number of stronger tight binding",
+        "Tight binding" : "Number of tight binding"
+    }, axis="columns")
+    
+    df_num = df_num.drop(["Protein"], axis="columns")
+    df_prc = df_prc.drop(["Protein"], axis="columns")
+    df = df_num.merge(df_prc, left_index=True, right_index=True)
+    
+    df.to_csv("../static/tables/{}/{}/{}.csv".format(
+        gisaid_id, hla_class, allele
+    ))

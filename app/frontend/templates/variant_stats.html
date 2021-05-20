@@ -138,6 +138,8 @@
                   {{ allele_summary["Number of stronger tight binding"] }} novel tight binders appeared ({{ '%0.1f'|format(allele_summary["Number of stronger tight binding"] / (allele_summary["Number of tight binding"] + 1) * 100) }}%).
                 {% endif %}
               {% endif %}
+              To avoid possible divisions by zero, we used + 1 regularization term
+              in denominators when calculating percentages.
             </p>
 
             <div class="btn-group" role="group" style="float: right;">

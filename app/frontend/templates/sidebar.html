@@ -19,7 +19,15 @@
       <hr>
 
       <p>Limit the results to a specific allele</p>
-      <select class="selectpicker show-tick form-control" data-style="btn-primary" onchange="location = this.value;">
+      <select 
+        class="selectpicker show-tick form-control pb-4"
+        data-style="btn-primary"
+        data-live-search="true"
+        data-dropdown-align-right="true"
+        data-window-padding="[56, 0, 0, 0]"
+        data-container="body"
+        onchange="location = this.value;"
+      >
         <option value="{{ gisaid_id }}">All alleles</option>
         {% for allele_ in alleles %}
           {% if allele_ == allele %}

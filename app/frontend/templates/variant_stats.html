@@ -131,7 +131,7 @@
                 {% else %}
                   are {{ allele_summary["Number of tight binding"] }} tight binders for the {{ allele }} in the reference immunopeptidome (IC<sub>50</sub> affinity &leq; 50 nM);
                 {% endif %}
-                {{ allele_summary["Number of weaker tight binding"] }} of them became non-tight binders ({{ '%0.1f'|format(allele_summary["Number of weaker tight binding"] / (allele_summary["Number of tight binding"] + 1) * 100) }}%), and 
+                {{ allele_summary["Number of weaker tight binding"] }} of them became non-tight binders ({{ '%0.1f'|format(allele_summary["Number of weaker tight binding"] / (allele_summary["Number of tight binding"] + 1) * 100) }}%) and 
                 {% if allele_summary["Number of stronger tight binding"] == 1 %}
                   1 novel tight binder appeared ({{ '%0.1f'|format(1 / (allele_summary["Number of tight binding"] + 1) * 100) }}%).
                 {% else %}
@@ -141,10 +141,10 @@
             </p>
 
             <div class="btn-group" role="group" style="float: right;">
-              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + allele + '.png') }}" role="button" download>Download figure&nbsp;<i class="bi bi-download"></i></a>  
-              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='tables/' + gisaid_id + '/' + hla_class + '/' + allele + '.csv') }}" role="button" download>Export data to csv&nbsp;<i class="bi bi-download"></i></a>
+              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + allele.replace('/', '_') + '.png') }}" role="button" download>Download figure&nbsp;<i class="bi bi-download"></i></a>  
+              <a class="btn btn-link" style="float: right;" href="{{ url_for('static', filename='tables/' + gisaid_id + '/' + hla_class + '/' + allele.replace('/', '_') + '.csv') }}" role="button" download>Export data to csv&nbsp;<i class="bi bi-download"></i></a>
             </div> 
-            <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + allele + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ allele }}"/>
+            <img src=" {{ url_for('static', filename='plots/' + gisaid_id + '/' + hla_class + '/' + allele.replace('/', '_') + '.png') }}" class="img-fluid" width="100% / 8" alt="{{ allele }}"/>
           {% endif %}
         
           {% for protein in affected_proteins %}

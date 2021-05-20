@@ -336,18 +336,6 @@ for hla_class in ["HLA-I", "HLA-II"]:
     alleles = set(df["Allele"])
 
     for allele in sorted(alleles):
-        if ("/" in allele):
-            identificator = allele.split("/")[0]
-            if not os.path.exists("../static/plots/{}/{}/{}".format(
-                    gisaid_id, hla_class, identificator)):
-                os.makedirs("../static/plots/{}/{}/{}".format(
-                    gisaid_id, hla_class, identificator))
-                       
-            if not os.path.exists("../static/tables/{}/{}/{}".format(
-                    gisaid_id, hla_class, identificator)):
-                os.makedirs("../static/tables/{}/{}/{}".format(
-                    gisaid_id, hla_class, identificator))
-
         print(gisaid_id, allele, hla_class)
         allele_plot(gisaid_id, hla_class, allele)
 

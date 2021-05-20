@@ -358,7 +358,7 @@ def allele_plot(gisaid_id, hla_class, allele):
         "../static/plots/{}/{}/{}.png".format(
             gisaid_id,
             hla_class,
-            allele
+            allele.replace("/", "_")
         )
     )
     
@@ -383,5 +383,5 @@ def allele_plot(gisaid_id, hla_class, allele):
     df = df_num.merge(df_prc, left_index=True, right_index=True)
     
     df.to_csv("../static/tables/{}/{}/{}.csv".format(
-        gisaid_id, hla_class, allele
+        gisaid_id, hla_class, allele.replace("/", "_")
     ))

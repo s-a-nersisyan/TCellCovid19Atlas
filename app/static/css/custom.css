@@ -53,6 +53,14 @@
 
 /* Footer */
 
-footer img {
+footer .hse img {
   height: 75px;
+}
+
+footer .bcpro_app img {
+  height: 55px;
+}
+
+footer a {
+  text-decoration: none;
 }

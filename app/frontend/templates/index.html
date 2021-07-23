@@ -5,7 +5,7 @@
     
     <div class="container">
 
-      <h1 class="display-4 text-center mt-4">T-cell COVID-19 Atlas</h1>
+      <h1 class="display-4 text-center mt-4">T-cell COVID-19 Atlas (T-CoV)</h1>
       <div class="lead text-center">
         Browse how SARS-CoV-2 mutations affect
         CD8 and CD4 T-cell epitopes
@@ -19,18 +19,17 @@
         <thead>
           <tr>
             <th>Variant</th>
-            <th>Common name</th>
-            <th>Date</th>
+            <th>First detected</th>
             <th>GISAID accession</th>
-            <th>T-cell epitopes</th>
+            <th>CD8 epitopes (HLA&#8209;I)</th>
+            <th>CD4 epitopes (HLA&#8209;II)</th>
           </tr>
         </thead>
         <tbody>
           {% for i, row in lineages.iterrows() %}
             <tr>
               <td>{{ row['Lineage'] }}</td>
-              <td>{{ row['Common name'] }}</td>
-              <td>{{ row['Date'] }}</td>
+              <td>{{ row['First detected'] }}</td>
               <td>
                 {{ row['GISAID Virus name'] }}
                 <br>
@@ -38,6 +37,11 @@
               </td>
               <td>
                 <a href="{{ row['GISAID Accession ID'] }}?hla_class=HLA-I">
+                  Browse&nbsp;<i class="bi bi-chevron-right"></i>
+                </a>
+              </td>
+              <td>
+                <a href="{{ row['GISAID Accession ID'] }}?hla_class=HLA-II">
                   Browse&nbsp;<i class="bi bi-chevron-right"></i>
                 </a>
               </td>
@@ -50,9 +54,14 @@
         If your variant of interest is not present in the table above,
         please contact us at <a href="mailto: snersisyan@hse.ru">snersisyan@hse.ru</a>.
       </p>
+      <p>
+        Please cite this paper if you are using T-CoV in your work:
+        <br>
+        Nersisyan S, Zhiyanov A, Shkurnikov M, Tonevitsky A. T-CoV: a comprehensive portal of HLA-peptide interactions affected by SARS-CoV-2 mutations. bioRxiv. 2021 Jul 06;451227. doi: <a href="https://doi.org/10.1101/2021.07.06.451227" target="_blank">10.1101/2021.07.06.451227</a>.
+      </p>
       
     </div>
-
+    
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/github-fork-ribbon-css/0.2.3/gh-fork-ribbon.min.css" />
     <a class="github-fork-ribbon" href="https://github.com/s-a-nersisyan/TCellCovid19Atlas" target="_blank" data-ribbon="Fork me on GitHub" title="Fork me on GitHub">Fork me on GitHub</a>
     

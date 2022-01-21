@@ -120,7 +120,7 @@ peptide_len_range = {
 }
 
 # The following block was added by dude
-for hla_class in ["HLA-I", "HLA-II"]:       
+for hla_class in ["HLA-I", "HLA-II"]:
     df = pd.read_csv("{}/diff_{}.csv".format(gisaid_id, hla_class))
 
     ref_aln = open("{}/ref_aln.fasta".format(gisaid_id))
@@ -157,6 +157,10 @@ for hla_class in ["HLA-I", "HLA-II"]:
             while (block_end < len(ref_seq)):
                 r = ref_seq[block_end]
                 m = mut_seq[block_end]
+                
+                if block_end > block_start and r == "-":
+                    ref_numspaces += 1
+                
                 cur_type = get_sub_type(r, m)
 
                 if (cur_type != sub_type):
@@ -190,12 +194,28 @@ for hla_class in ["HLA-I", "HLA-II"]:
             except:
                 ref_hla_pep_iter = iter(lambda: None, 1)  # Infinite iterator
                 db.session.rollback()
+            
+            if (
+                pd.isna(ref_pep) or
+                len(ref_hla_pep_iter) == 0 or
+                len(ref_pep) < peptide_len_range[hla_class][0] or
+                len(ref_pep) > peptide_len_range[hla_class][1]
+            ):
+                ref_hla_pep_iter = iter(lambda: None, 1)  # Infinite iterator
 
             try:
                 mut_hla_pep_iter = HLAAllelesPeptides.query.filter_by(peptide=mut_pep).order_by(HLAAllelesPeptides.hla_allele).all()
             except:
                 mut_hla_pep_iter = iter(lambda: None, 1)
                 db.session.rollback()
+            
+            if (
+                pd.isna(mut_pep) or
+                len(mut_hla_pep_iter) == 0 or
+                len(mut_pep) < peptide_len_range[hla_class][0] or
+                len(mut_pep) > peptide_len_range[hla_class][1]
+            ):
+                mut_hla_pep_iter = iter(lambda: None, 1)  # Infinite iterator
 
             for ref_hla_pep, mut_hla_pep in zip(ref_hla_pep_iter, mut_hla_pep_iter):
                 if (ref_hla_pep != None and mut_hla_pep != None):
@@ -231,7 +251,7 @@ for hla_class in ["HLA-I", "HLA-II"]:
 
                 ref_aff = ref_hla_pep.affinity if ref_hla_pep else None
                 mut_aff = mut_hla_pep.affinity if mut_hla_pep else None
-                
+
                 if not ref_aff and mut_aff > AFFINITY_THRESHOLD1:
                     continue
                 if not mut_aff and ref_aff > AFFINITY_THRESHOLD1:
@@ -272,7 +292,7 @@ for hla_class in ["HLA-I", "HLA-II"]:
             
         report_row = sorted(report_row, key=sorting_key)
         report.append([protein, start, end, mut, report_row])
-
+    
     report_file = open("{}/report_{}.json".format(gisaid_id, hla_class), "w")
     json.dump(report, report_file)
     report_file.close()

@@ -1,0 +1,25 @@
+<nav class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-white">
+  <div class="position-sticky">
+
+      <ul class="nav nav-pills flex-column mt-4" id="navbar-protein">
+        <li class="nav-item">
+          <a class="nav-link" href="#Summary">
+            Summary
+          </a>
+        </li>
+        {% for protein in proteins %}
+          <li class="nav-item">
+            {% if protein == "all" %}
+              <a class="nav-link" href="#{{ protein }}">
+                All proteins
+              </a>
+            {% else %}
+              <a class="nav-link" href="#{{ protein }}">
+                {{ protein[0]|upper }}{{ protein[1:] }} 
+              </a>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ul>
+  </div>
+</nav>

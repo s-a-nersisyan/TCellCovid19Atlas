@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  {% include 'head.html' %}
+  <style>
+  ::-webkit-scrollbar {
+      -webkit-appearance: none;
+      width: 7px;
+      height: 7px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+      border-radius: 4px;
+      background-color: rgba(0,0,0,.5);
+      -webkit-box-shadow: 0 0 1px rgba(255,255,255,.5);
+  }
+  </style>
+
+  <body style="position: relative;">
+    {% include 'top_menu_comparison.html' %}
+
+    <div class="container-fluid variant_stats">
+      <div class="row">
+    
+        {% include 'sidebar_comparison.html' %}
+        
+        <div class="col-md-9 ml-sm-auto col-lg-10 px-md-4 mt-4">
+          
+          <h1 id="Summary">Summary</h1>
+
+          {% for protein in proteins %}
+            {% if protein == "all" %}
+              <h2 id={{ protein }}>All proteins</h2>
+            {% else %}
+              <h2 id={{ protein }}>{{ protein[0]|upper }}{{ protein[1:] }} </h2>
+            {% endif %}
+            <a class="btn btn-link" style="float: right;" href="/{{ first_gisaid_id }}/{{ second_gisaid_id }}/download?hla_alleles={{hla_alleles}}&protein={{ protein }}" role="button" download>Export raw data to csv&nbsp;<i class="bi bi-download"></i></a>
+
+            <table class="table table-bordered table-striped">
+              <thead>
+                <tr>
+                  <th>Allele</th>
+                  <th>{{ first_gisaid_id }}</th>
+                  <th>{{ second_gisaid_id }}</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for _, row in hla_summary[protein].iterrows() %}
+              {% if not (row['Allele'] == 'Summary') %}
+                <tr>
+                  <td>{{ row['Allele'] }}</td>
+                  <td>{{ row['First'] }}</td>
+                  <td>{{ row['Second'] }}</td>
+                </tr>
+              {% endif %}
+              {% endfor %}
+              </tbody>
+            </table>  
+            {% set df = hla_summary[protein] %}
+            <p>The total number of tight binders in {{ first_gisaid_id }} is {{ df.loc[df["Allele"] == "Summary"]["First"].iloc[0] }}, in {{ second_gisaid_id }} is {{ df.loc[df["Allele"] == "Summary"]["Second"].iloc[0] }}.</p>
+
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    {% include 'footer.html' %}
+
+  </body>
+</html>

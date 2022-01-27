@@ -1,11 +1,17 @@
 from . import frontend
 from app import app
+from app.api.models import HLAAllelesPeptides
+from sqlalchemy import or_
+
+# from app.api.models import HLAAllelesPeptides
 
 from flask import render_template
 from flask import request
 from flask import Response
 
 import pandas as pd
+import pickle as pkl
+from itertools import product
 import os
 import json
 
@@ -15,7 +21,6 @@ def show_index():
     lineages = pd.read_csv("{}/lineages.csv".format(app.config["PIPELINE_PATH"]))
     
     return render_template("index.html", lineages=lineages)
-
 
 @frontend.route("/<gisaid_id>", methods=["GET"])
 def show_report_page(gisaid_id):
@@ -78,4 +83,177 @@ def download(gisaid_id):
         }
     )
     
+# @frontend.route("/comparison", methods=["GET"])
+# def show_request_page():
+#     return None
+
+def compare_variants(
+        first_gisaid_id, second_gisaid_id,
+        hla_alleles, protein
+):
+    gisaid_id_binders = {}
+    for gisaid_id in [first_gisaid_id, second_gisaid_id]:
+        _dict = pkl.load(open("{}/{}/tight_binders_{}.pkl".format(
+            app.config["PIPELINE_PATH"], gisaid_id, protein.lower()
+        ), "rb"))
+
+        binders = set()
+        for allele in hla_alleles:
+            if not (allele in _dict):
+                continue
+            
+            binders.update(_dict[allele][-1])
+        
+        gisaid_id_binders[gisaid_id] = binders
     
+    first_score = len(gisaid_id_binders[first_gisaid_id])
+    second_score = len(gisaid_id_binders[second_gisaid_id])
+    
+    return first_score, second_score
+
+def hla_summary(
+        first_gisaid_id, second_gisaid_id,
+        hla_alleles, proteins
+):
+    summary = {}
+    for protein in proteins:
+        binder_analysis = {}
+        for hla_allele in hla_alleles:
+            binder_analysis[hla_allele] = compare_variants(
+                first_gisaid_id, second_gisaid_id,
+                [hla_allele], protein
+            )
+
+        binder_analysis["Summary"] = compare_variants(
+            first_gisaid_id, second_gisaid_id,
+            hla_alleles, protein
+        )
+
+        df = pd.DataFrame([
+            {
+                "Allele": hla_allele,
+                "First": binder_analysis[hla_allele][0],
+                "Second": binder_analysis[hla_allele][1]
+            } for hla_allele in hla_alleles + ["Summary"]
+        ])
+        
+        summary[protein] = df
+
+    return summary
+
+PROTEINS = ["spike", "all"]
+
+@frontend.route("/<first_gisaid_id>/<second_gisaid_id>", methods=["GET"])
+def show_comparison_page(first_gisaid_id, second_gisaid_id):
+    hla_alleles = request.args.get("hla_alleles") 
+    hla_alleles = hla_alleles.split(",")
+    hla_class = request.args.get("hla_class")
+    
+    if not hla_class:
+        hla_class = "HLA-I"
+
+    if hla_class == "HLA-I":
+        hla_alleles = [
+            hla for hla in hla_alleles if not ("D" in hla)
+        ]
+
+    else:
+        hla_alleles = [
+            hla for hla in hla_alleles if "D" in hla
+        ]
+
+    summary = hla_summary(
+        first_gisaid_id, second_gisaid_id,
+        hla_alleles, PROTEINS
+    )
+
+    
+    return render_template(
+        "variant_comparison.html",
+        hla_summary=summary,
+        proteins=PROTEINS,
+        hla_alleles=request.args.get("hla_alleles"),
+        hla_class=hla_class,
+        first_gisaid_id=first_gisaid_id,
+        second_gisaid_id=second_gisaid_id
+    )
+
+@frontend.route("/<first_gisaid_id>/<second_gisaid_id>/download", methods=["GET"])
+def download_comparison(first_gisaid_id, second_gisaid_id):
+    hla_alleles = request.args.get("hla_alleles") 
+    hla_alleles = hla_alleles.split(",")
+    protein = request.args.get("protein")
+    if not protein in PROTEINS:
+        protein = "all"
+
+    gisaid_id_binders = {}
+    df_peptides = []
+    df_alleles = []
+    for gisaid_id in [first_gisaid_id, second_gisaid_id]:
+        _dict = pkl.load(open("{}/{}/tight_binders_{}.pkl".format(
+            app.config["PIPELINE_PATH"], gisaid_id, protein
+        ), "rb"))
+
+        binders = set()
+        for allele in hla_alleles:
+            if allele not in _dict:
+                continue
+
+            binders.update(_dict[allele][-1])
+            
+            df_peptides.extend(_dict[allele][-1])
+            df_alleles.extend([allele] * len(_dict[allele][-1]))
+        
+        gisaid_id_binders[gisaid_id] = binders
+    
+    common_binders = gisaid_id_binders[first_gisaid_id] & \
+    gisaid_id_binders[second_gisaid_id]
+    
+    disappeared_binders = gisaid_id_binders[first_gisaid_id] - \
+    gisaid_id_binders[second_gisaid_id]
+    
+    appeared_binders = gisaid_id_binders[second_gisaid_id] - \
+    gisaid_id_binders[first_gisaid_id]
+    
+    download_df = pd.DataFrame()
+    download_df["Allele"] = df_alleles
+    download_df["Peptide"] = df_peptides
+    download_df = download_df.drop_duplicates(subset=["Allele", "Peptide"])
+
+    df_type = []
+    for _, row in download_df.iterrows():
+        if row["Peptide"] in disappeared_binders:
+            df_type.append("disappeared")
+        elif row["Peptide"] in appeared_binders:
+            df_type.append("appeared")
+        else:
+            df_type.append("common")
+    
+    download_df["Type"] = df_type
+
+    db_filter = [
+        (HLAAllelesPeptides.peptide==row["Peptide"]) &
+        (HLAAllelesPeptides.hla_allele==row["Allele"]) \
+        for _, row in download_df.iterrows()
+    ]
+    
+    if len(download_df) > 0:
+        download_df["Affinity"] = [
+            row.affinity for row in HLAAllelesPeptides.query.filter(
+                or_(*db_filter)
+            ).all()
+        ]
+    else:
+        download_df["Affinity"] = []
+
+    return Response(
+        download_df.to_csv(index=None, sep=","),
+        mimetype="text/csv",
+        headers={
+            "Content-disposition":
+            "attachment; filename={}vs{}_{}.csv".format(
+                first_gisaid_id, second_gisaid_id,
+                protein
+            )
+        }
+    )

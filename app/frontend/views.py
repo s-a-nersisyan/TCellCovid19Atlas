@@ -8,12 +8,14 @@ from sqlalchemy import or_
 from flask import render_template
 from flask import request
 from flask import Response
+from flask import jsonify
 
 import pandas as pd
 import pickle as pkl
 from itertools import product
 import os
 import json
+
 
 @frontend.route("/", methods=["GET"])
 def show_index():
@@ -22,7 +24,7 @@ def show_index():
     
     return render_template("index.html", lineages=lineages)
 
-@frontend.route("/<gisaid_id>", methods=["GET"])
+@frontend.route("/stats/<gisaid_id>", methods=["GET"])
 def show_report_page(gisaid_id):
     allele = request.args.get("allele")
     hla_class = request.args.get("hla_class")
@@ -65,7 +67,7 @@ def show_report_page(gisaid_id):
         alleles=alleles, allele=allele, hla_class=hla_class
     )
 
-@frontend.route("/<gisaid_id>/download", methods=["GET"])
+@frontend.route("/stats/<gisaid_id>/download", methods=["GET"])
 def download(gisaid_id):
     hla_class = request.args.get("hla_class")
     ident = request.args.get("type")
@@ -87,22 +89,57 @@ def download(gisaid_id):
 # def show_request_page():
 #     return None
 
+PROTEINS = [
+    "All",
+    "M",
+    "N",
+    "NS3",
+    "NSP12",
+    "NSP13",
+    "NSP14",
+    "NSP16",
+    "NSP2",
+    "NSP3",
+    "NSP4",
+    "NSP5",
+    "NSP8",
+    "NSP9",
+    "Spike",
+    "E",
+    "NS6",
+    "NS7a",
+    "NS7b",
+    "NS8",
+    "NS9c",
+    "NSP1",
+    "NSP10",
+    "NSP15",
+    "NSP6",
+    "NSP7",
+    "NS9b",
+    "NSP11"
+]
+
 def compare_variants(
-        first_gisaid_id, second_gisaid_id,
-        hla_alleles, protein
+    first_gisaid_id, second_gisaid_id,
+    first_binders_dict, second_binders_dict,
+    hla_alleles, protein
 ):
     gisaid_id_binders = {}
-    for gisaid_id in [first_gisaid_id, second_gisaid_id]:
-        _dict = pkl.load(open("{}/{}/tight_binders_{}.pkl".format(
-            app.config["PIPELINE_PATH"], gisaid_id, protein.lower()
-        ), "rb"))
+    iterator = zip(
+        [first_gisaid_id, second_gisaid_id],
+        [first_binders_dict, second_binders_dict]
+    )
+
+    for gisaid_id, binders_dict in iterator:
+        _dict = binders_dict[protein] 
 
         binders = set()
         for allele in hla_alleles:
             if not (allele in _dict):
                 continue
             
-            binders.update(_dict[allele][-1])
+            binders.update(_dict[allele])
         
         gisaid_id_binders[gisaid_id] = binders
     
@@ -111,21 +148,55 @@ def compare_variants(
     
     return first_score, second_score
 
+# def compare_variants(
+#     first_gisaid_id, second_gisaid_id,
+#     hla_alleles, protein
+# ):
+#     gisaid_id_binders = {}
+#     for gisaid_id in [first_gisaid_id, second_gisaid_id]:
+#         _dict = pkl.load(open("{}/{}/tight_binders_{}.pkl".format(
+#             app.config["PIPELINE_PATH"], gisaid_id, protein.lower()
+#         ), "rb"))
+# 
+#         binders = set()
+#         for allele in hla_alleles:
+#             if not (allele in _dict):
+#                 continue
+#             
+#             binders.update(_dict[allele][-1])
+#         
+#         gisaid_id_binders[gisaid_id] = binders
+#     
+#     first_score = len(gisaid_id_binders[first_gisaid_id])
+#     second_score = len(gisaid_id_binders[second_gisaid_id])
+#     
+#     return first_score, second_score
+
 def hla_summary(
-        first_gisaid_id, second_gisaid_id,
-        hla_alleles, proteins
+    first_gisaid_id, second_gisaid_id,
+    hla_alleles, proteins
 ):
     summary = {}
     for protein in proteins:
+        first_binders_dict = pkl.load(open("{}/{}/tight_binders.pkl".format(
+            app.config["PIPELINE_PATH"], first_gisaid_id, protein.lower()
+        ), "rb"))
+        
+        second_binders_dict = pkl.load(open("{}/{}/tight_binders.pkl".format(
+            app.config["PIPELINE_PATH"], second_gisaid_id, protein.lower()
+        ), "rb"))
+
         binder_analysis = {}
         for hla_allele in hla_alleles:
             binder_analysis[hla_allele] = compare_variants(
                 first_gisaid_id, second_gisaid_id,
+                first_binders_dict, second_binders_dict,
                 [hla_allele], protein
             )
 
         binder_analysis["Summary"] = compare_variants(
             first_gisaid_id, second_gisaid_id,
+            first_binders_dict, second_binders_dict,
             hla_alleles, protein
         )
 
@@ -141,50 +212,160 @@ def hla_summary(
 
     return summary
 
-PROTEINS = ["spike", "all"]
+HLA_I_order = ["HLA-A", "HLA-B", "HLA-C"]
+HLA_II_order = ["HLA-DR", "HLA-DQ", "HLA-DP"]
+def analise_haplotype(alleles, hla_class):
+    if hla_class == "HLA-I":
+        hla_order = HLA_I_order 
+    else:
+        hla_order = HLA_II_order 
+        
+    hla_dict = {tp: [] for tp in hla_order}
+    for allele in alleles:
+        for tp in hla_order:
+            if allele.startswith(tp):
+                hla_dict[tp].append(allele)
+                continue
+    
+    return hla_dict
 
-@frontend.route("/<first_gisaid_id>/<second_gisaid_id>", methods=["GET"])
+def analise_haplotype_frequency(alleles, hla_class):
+    hla_dict = analise_haplotype(alleles, hla_class)
+
+    if hla_class == "HLA-I":
+        hla_order = HLA_I_order 
+    else:
+        hla_order = HLA_II_order 
+    
+    for tp in hla_order:
+        for i, allele in enumerate(hla_dict[tp]):
+            hla_dict[tp][i] = allele.split("/")[-1].split("*")[-1]
+
+        if not hla_dict[tp]:
+            hla_dict[tp].append("")
+
+        hla_dict[tp] = list(set(hla_dict[tp]))
+
+    if hla_class == "HLA-I":
+        frequency_df = pd.read_csv(
+            "{}alleles/ABC_haplotype_region_frequency.tsv".format(app.config["STATIC_PATH"]),
+            sep="\t"
+        )
+    else:
+        frequency_df = pd.read_csv(
+            "{}alleles/RQP_haplotype_region_frequency.tsv".format(app.config["STATIC_PATH"]),
+            sep="\t"
+        )
+    
+    for i, tp in enumerate(hla_order):
+        frequency_df[tp] = frequency_df["Haplotype"].str.split("/").str[i]
+    frequency_df = frequency_df.drop(columns=["Haplotype"])
+    
+    group_columns = [tp for tp in hla_order if hla_dict[tp][0]]
+
+    haplotype_freq_df = pd.DataFrame(columns=frequency_df.columns) 
+    
+    hla_haplotypes = [hla_dict[tp] for tp in hla_order]
+    for haplotype in product(*hla_haplotypes):
+        to_append = frequency_df.loc[
+            frequency_df[hla_order[0]].str.startswith(haplotype[0]) & \
+            frequency_df[hla_order[1]].str.startswith(haplotype[1]) & \
+            frequency_df[hla_order[2]].str.startswith(haplotype[2])
+        ].groupby(group_columns).sum()
+        
+        for i, tp in enumerate(hla_order):
+            to_append[tp] = haplotype[i]
+
+        haplotype_freq_df = haplotype_freq_df.append(to_append, ignore_index=True)
+
+    haplotype = "/".join([tp.split("-")[-1] for tp in hla_order])
+    haplotype_freq_df[haplotype] = ""
+    for i, tp in enumerate(hla_order):
+        haplotype_freq_df[haplotype] += haplotype_freq_df[tp]
+        if i < len(hla_order) - 1:
+            haplotype_freq_df[haplotype] += "/"
+    
+    haplotype_freq_df = haplotype_freq_df.set_index(haplotype)
+    haplotype_freq_df = haplotype_freq_df.drop(columns=hla_order)
+    
+    return haplotype_freq_df 
+    
+@frontend.route("/comparison/<first_gisaid_id>/<second_gisaid_id>", methods=["GET"])
 def show_comparison_page(first_gisaid_id, second_gisaid_id):
     hla_alleles = request.args.get("hla_alleles") 
     hla_alleles = hla_alleles.split(",")
     hla_class = request.args.get("hla_class")
     
-    if not hla_class:
+    known_alleles = set(json.load(open(
+        "{}/alleles/alleles.json".format(app.config["STATIC_PATH"])
+    )))
+
+    hla_I_alleles = [
+        hla for hla in hla_alleles if (not "D" in hla) and (hla in known_alleles)
+    ]
+    hla_II_alleles = [
+        hla for hla in hla_alleles if ("D" in hla) and (hla in known_alleles)
+    ]
+ 
+    other_class = True
+
+    if (not hla_I_alleles) and (not hla_II_alleles):
+        other_class = False
+        return "Unknown sequence of hla alleles", 400
+    elif not hla_I_alleles:
+        hla_class = "HLA-II"
+        hla_alleles = hla_II_alleles
+        other_class = False
+    elif not hla_II_alleles:
         hla_class = "HLA-I"
-
-    if hla_class == "HLA-I":
-        hla_alleles = [
-            hla for hla in hla_alleles if not ("D" in hla)
-        ]
-
+        hla_alleles = hla_I_alleles
+        other_class = False
+    elif not hla_class:
+        hla_class = "HLA-I"
+        hla_alleles = hla_I_alleles
+    elif hla_class == "HLA-II":
+        hla_alleles = hla_II_alleles
     else:
-        hla_alleles = [
-            hla for hla in hla_alleles if "D" in hla
-        ]
+        hla_class = "HLA-I"
+        hla_alleles = hla_I_alleles
+
+    analise_haplotype_frequency(hla_alleles, hla_class)
 
     summary = hla_summary(
         first_gisaid_id, second_gisaid_id,
         hla_alleles, PROTEINS
     )
 
+    lineages = pd.read_csv(
+        "{}/lineages.csv".format(app.config["PIPELINE_PATH"])
+    )
+
+    haplotype_frequency = analise_haplotype_frequency(
+        hla_alleles, hla_class
+    )
+    print(haplotype_frequency)
     
     return render_template(
         "variant_comparison.html",
         hla_summary=summary,
         proteins=PROTEINS,
+        haplotype_frequency=haplotype_frequency,
         hla_alleles=request.args.get("hla_alleles"),
         hla_class=hla_class,
         first_gisaid_id=first_gisaid_id,
-        second_gisaid_id=second_gisaid_id
+        second_gisaid_id=second_gisaid_id,
+        lineages=lineages,
+        other_class=other_class
     )
 
-@frontend.route("/<first_gisaid_id>/<second_gisaid_id>/download", methods=["GET"])
+@frontend.route("/comparison/<first_gisaid_id>/<second_gisaid_id>/download", methods=["GET"])
 def download_comparison(first_gisaid_id, second_gisaid_id):
     hla_alleles = request.args.get("hla_alleles") 
     hla_alleles = hla_alleles.split(",")
     protein = request.args.get("protein")
+
     if not protein in PROTEINS:
-        protein = "all"
+        protein = "All"
 
     gisaid_id_binders = {}
     df_peptides = []
@@ -256,4 +437,19 @@ def download_comparison(first_gisaid_id, second_gisaid_id):
                 protein
             )
         }
+    )
+
+@frontend.route("/input", methods=["GET"])
+def show_input_page():
+    lineages = pd.read_csv(
+        "{}/lineages.csv".format(app.config["PIPELINE_PATH"])
+    )
+    alleles = json.load(open(
+        "{}/alleles/alleles.json".format(app.config["STATIC_PATH"])
+    ))
+
+    return render_template(
+        "input.html",
+        lineages=lineages,
+        alleles=alleles
     )

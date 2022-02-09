@@ -1,5 +1,5 @@
 <nav class="topmenu navbar fixed-top navbar-light bg-white d-flex justify-content-between">
-  <a class="navbar-brand" style="flex-grow: 1; flex-basis: 0;" href="..">T-CoV</a>
+  <a class="navbar-brand" style="flex-grow: 1; flex-basis: 0;" href="/">T-CoV</a>
   
   <span class="">{{ lineage }}</span>
   
@@ -9,9 +9,9 @@
         <li class="page-item active" aria-current="page">
           <span class="page-link">CD8 epitopes (HLA&#8209;I)</span>
         </li>
-        <li class="page-item"><a class="page-link" href="{{ gisaid_id }}?hla_class=HLA-II">CD4 epitopes (HLA&#8209;II)</a></li>
+        <li class="page-item"><a class="page-link" href="/stats/{{ gisaid_id }}?hla_class=HLA-II">CD4 epitopes (HLA&#8209;II)</a></li>
       {% else %}
-        <li class="page-item"><a class="page-link" href="{{ gisaid_id }}?hla_class=HLA-I">CD8 epitopes (HLA&#8209;I)</a></li>
+        <li class="page-item"><a class="page-link" href="/stats/{{ gisaid_id }}?hla_class=HLA-I">CD8 epitopes (HLA&#8209;I)</a></li>
         <li class="page-item active" aria-current="page">
           <span class="page-link">CD4 epitopes (HLA&#8209;II)</span>
         </li>

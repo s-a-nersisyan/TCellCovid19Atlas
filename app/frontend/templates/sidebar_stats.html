@@ -31,9 +31,9 @@
         <option value="{{ gisaid_id }}">All alleles</option>
         {% for allele_ in alleles %}
           {% if allele_ == allele %}
-          <option value="{{ gisaid_id }}?hla_class={{ hla_class }}&allele={{ allele_ }}" selected>{{ allele_ }}</option>
+          <option value="/stats/{{ gisaid_id }}?hla_class={{ hla_class }}&allele={{ allele_ }}" selected>{{ allele_ }}</option>
           {% else %}
-            <option value="{{ gisaid_id }}?hla_class={{ hla_class }}&allele={{ allele_ }}">{{ allele_ }}</option>
+            <option value="/stats/{{ gisaid_id }}?hla_class={{ hla_class }}&allele={{ allele_ }}">{{ allele_ }}</option>
           {% endif %}
         {% endfor %} 
       </select>

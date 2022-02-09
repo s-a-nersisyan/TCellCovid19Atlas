@@ -1,7 +1,7 @@
 <nav class="topmenu navbar fixed-top navbar-light bg-white d-flex justify-content-between">
-  <a class="navbar-brand" style="flex-grow: 1; flex-basis: 0;" href="..">T-CoV</a>
+  <a class="navbar-brand" style="flex-grow: 1; flex-basis: 0;" href="/">T-CoV</a>
   
-  <span class="">{{ first_gisaid_id }}/{{ second_gisaid_id }}</span>
+  <span class="">{{ lineages.loc[lineages["GISAID Accession ID"] == first_gisaid_id]["Lineage"].iloc[0] }}/{{ lineages.loc[lineages["GISAID Accession ID"] == second_gisaid_id]["Lineage"].iloc[0] }}</span>
   
   <div class="d-flex justify-content-end" style="flex-grow: 1; flex-basis: 0;">
     <ul class="pagination pagination-sm my-0">
@@ -9,9 +9,17 @@
         <li class="page-item active" aria-current="page">
           <span class="page-link">CD8 epitopes (HLA&#8209;I)</span>
         </li>
-        <li class="page-item"><a class="page-link" href="/{{ first_gisaid_id }}/{{ second_gisaid_id }}?hla_alleles={{ hla_alleles }}&hla_class=HLA-II">CD4 epitopes (HLA&#8209;II)</a></li>
+        {% if other_class %}
+          <li class="page-item"><a class="page-link" href="/comparison/{{ first_gisaid_id }}/{{ second_gisaid_id }}?hla_alleles={{ hla_alleles }}&hla_class=HLA-II">CD4 epitopes (HLA&#8209;II)</a></li>
+        {% else %}
+          <li class="page-item"><a class="page-link">CD4 epitopes (HLA&#8209;II)</a></li>
+        {% endif %}
       {% else %}
-        <li class="page-item"><a class="page-link" href="/{{ first_gisaid_id }}/{{ second_gisaid_id }}?hla_alleles={{ hla_alleles }}&hla_class=HLA-I">CD8 epitopes (HLA&#8209;I)</a></li>
+        {% if other_class %}
+          <li class="page-item"><a class="page-link" href="/comparison/{{ first_gisaid_id }}/{{ second_gisaid_id }}?hla_alleles={{ hla_alleles }}&hla_class=HLA-I">CD8 epitopes (HLA&#8209;I)</a></li>
+        {% else %}
+          <li class="page-item"><a class="page-link">CD8 epitopes (HLA&#8209;I)</a></li>
+        {% endif %}
         <li class="page-item active" aria-current="page">
           <span class="page-link">CD4 epitopes (HLA&#8209;II)</span>
         </li>

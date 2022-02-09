@@ -17,12 +17,12 @@
   </style>
 
   <body style="position: relative;">
-    {% include 'top_menu.html' %}
+    {% include 'top_menu_stats.html' %}
 
     <div class="container-fluid variant_stats">
       <div class="row">
     
-        {% include 'sidebar.html' %}
+        {% include 'sidebar_stats.html' %}
 
         <div class="col-md-9 ml-sm-auto col-lg-10 px-md-4 mt-4">
           
@@ -175,7 +175,7 @@
                 <br>
                 <span class="text-monospace">Mutated&nbsp;&nbsp;&nbsp;&nbsp;{{ mut_block[:block_start].replace("-", "&#8209;") | safe }}<b class="alert-primary">{{ mut_block[block_start:block_end].replace("-", "&#8209;") | safe }}</b>{{ mut_block[block_end:].replace("-", "&#8209;") | safe }}</span>
               </p>
-              <a class="btn btn-link" style="float: right;" href="{{gisaid_id}}/download?hla_class={{ hla_class }}" role="button" download>Export table to csv&nbsp;<i class="bi bi-download"></i></a>
+              <a class="btn btn-link" style="float: right;" href="/stats/{{gisaid_id}}/download?hla_class={{ hla_class }}" role="button" download>Export table to csv&nbsp;<i class="bi bi-download"></i></a>
               
               <table class="table table-bordered table-striped">
                 <thead>

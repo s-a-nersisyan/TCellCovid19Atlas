@@ -18,14 +18,50 @@
   <body style="position: relative;">
     {% include 'top_menu_comparison.html' %}
 
-    <div class="container-fluid variant_stats">
+    <div class="container-fluid variant_comparison">
       <div class="row">
     
         {% include 'sidebar_comparison.html' %}
         
         <div class="col-md-9 ml-sm-auto col-lg-10 px-md-4 mt-4">
-          
-          <h1 id="Summary">Summary</h1>
+          <br><br>
+          <h2 id="Frequency">Frequency</h2>
+          <br>
+          <table class="table table-bordered table-striped">
+            <thead>
+              <tr>
+                <th>Haplotype {{ haplotype_frequency.index.name }}</th>
+                {% for column in haplotype_frequency.columns %}
+                  {% if column == "South and Central America" %}
+                    {% set column = "S&C America" %}
+                  {% endif %}
+                  {% if column == "Weighted" %}
+                    <th>{{ column }}</th>
+                  {% elif column == "Mean"%}
+                    <th>{{ column }}</td>
+                  {% else %}
+                    <td>{{ column }}</td>
+                  {% endif %}
+                {% endfor %}
+              </tr>
+            </thead>
+            <tbody>
+              {% for haplotype, row in haplotype_frequency.iterrows(): %}  
+                <tr>
+                  <th>{{ haplotype }}</th>
+                  {% for column in haplotype_frequency.columns %}
+                    {% if column == "Weighted" %}
+                      <th> {{ '%0.2f'|format(row[column]) }}</th>
+                    {% elif column == "Mean"%}
+                      <th> {{ '%0.2f'|format(row[column]) }}</th>
+                    {% else %}
+                      <td> {{ '%0.2f'|format(row[column]) }}</td>
+                    {% endif %}
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>  
 
           {% for protein in proteins %}
             {% if protein == "all" %}
@@ -33,31 +69,35 @@
             {% else %}
               <h2 id={{ protein }}>{{ protein[0]|upper }}{{ protein[1:] }} </h2>
             {% endif %}
-            <a class="btn btn-link" style="float: right;" href="/{{ first_gisaid_id }}/{{ second_gisaid_id }}/download?hla_alleles={{hla_alleles}}&protein={{ protein }}" role="button" download>Export raw data to csv&nbsp;<i class="bi bi-download"></i></a>
+            <a class="btn btn-link" style="float: right;" href="/comparison/{{ first_gisaid_id }}/{{ second_gisaid_id }}/download?hla_alleles={{hla_alleles}}&protein={{ protein }}" role="button" download>Export raw data to csv&nbsp;<i class="bi bi-download"></i></a>
 
             <table class="table table-bordered table-striped">
               <thead>
                 <tr>
                   <th>Allele</th>
-                  <th>{{ first_gisaid_id }}</th>
-                  <th>{{ second_gisaid_id }}</th>
+                  <th>{{ lineages.loc[lineages["GISAID Accession ID"] == first_gisaid_id]["Lineage"].iloc[0] }}</th>
+                  <th>{{ lineages.loc[lineages["GISAID Accession ID"] == second_gisaid_id]["Lineage"].iloc[0] }}</th>
                 </tr>
               </thead>
               <tbody>
               {% for _, row in hla_summary[protein].iterrows() %}
-              {% if not (row['Allele'] == 'Summary') %}
-                <tr>
-                  <td>{{ row['Allele'] }}</td>
-                  <td>{{ row['First'] }}</td>
-                  <td>{{ row['Second'] }}</td>
-                </tr>
-              {% endif %}
+                {% if not (row['Allele'] == 'Summary') %}
+                  <tr>
+                    <td>{{ row['Allele'] }}</td>
+                    <td>{{ row['First'] }}</td>
+                    <td>{{ row['Second'] }}</td>
+                  </tr>
+                {% else %}
+                  <tr>
+                    <th>Total</th>
+                    <th>{{ row['First'] }}</th>
+                    <th>{{ row['Second'] }}</th>
+                  </tr>
+                {% endif %}
               {% endfor %}
               </tbody>
             </table>  
             {% set df = hla_summary[protein] %}
-            <p>The total number of tight binders in {{ first_gisaid_id }} is {{ df.loc[df["Allele"] == "Summary"]["First"].iloc[0] }}, in {{ second_gisaid_id }} is {{ df.loc[df["Allele"] == "Summary"]["Second"].iloc[0] }}.</p>
-
           {% endfor %}
         </div>
       </div>

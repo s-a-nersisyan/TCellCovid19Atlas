@@ -22,6 +22,10 @@
   padding-top: 56px;
 }
 
+.variant_comparison h1[id] {
+  padding-top: 56px;
+}
+
 .sidebar {
   position: fixed;
   top: 56px;
@@ -49,6 +53,46 @@
 
 .selectpicker {
   z-index: 2000;
+}
+
+/* Comparison page */
+
+/* Input page */
+
+.blue-btn-primary {
+  color: #fff;
+  background-color: #007bff;
+  border-color:#007bff
+}
+
+.blue-btn-primary:hover {
+  color: #fff;
+  background-color: #0069d9;
+  border-color:#0062cc
+}
+
+.blue-btn-primary.focus, .blue-btn-primary:focus {
+  box-shadow:0 0 0 .2rem rgba(0, 123, 255, .5)
+}
+
+.blue-btn-primary.disabled, .blue-btn-primary:disabled {
+  color: #fff;
+  background-color: #007bff;
+  border-color:#007bff
+}
+
+.blue-btn-primary:not(:disabled):not(.disabled).active,
+.blue-btn-primary:not(:disabled):not(.disabled):active,
+.show > .blue-btn-primary.dropdown-toggle {
+  color: #fff;
+  background-color: #0062cc;
+  border-color:#005cbf
+}
+
+.blue-btn-primary:not(:disabled):not(.disabled).active:focus,
+.blue-btn-primary:not(:disabled):not(.disabled):active:focus,
+.show > .blue-btn-primary.dropdown-toggle:focus {
+  box-shadow:0 0 0 .2rem rgba(0, 123, 255, .5)
 }
 
 /* Footer */

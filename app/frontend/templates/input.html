@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+  
+  {% include 'head.html' %}
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.5/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='bootstrap-tagsinput/bootstrap-tagsinput.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='assets/app.css') }}">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.20/angular.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
+  <script src="{{ url_for('static', filename='bootstrap-tagsinput/bootstrap-tagsinput.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='bootstrap-tagsinput/bootstrap-tagsinput-angular.min.js') }}"></script>
+  
+  <body style="position: relative;">
+    <div class="container-fluid">
+      <div class="row justify-content-center">
+        <h1>Input HLA alleles below</h1>
+      </div>
+      <div class="row justify-content-center">
+        <div class="col-10 col-sm-8 col-md-6 col-lg-4 mt-4 pl-0 pr-0"> 
+          <input type="text" class="form-control" id="allele-input" placeholder="" aria-label="" aria-describedby="basic-addon2" data-role="tagsinput">
+        </div>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-5 col-sm-4 col-md-3 col-lg-2 mt-4 pl-0 pr-2">
+          <select 
+            class="selectpicker show-tick form-control pb-0"
+            id="first_gisaid"
+            data-style="blue-btn-primary"
+            data-live-search="true"
+            data-dropdown-align-left="true"
+            data-window-padding="[56, 0, 0, 0]"
+            data-container="body"
+            title="First variant"
+            onchange=""
+          >
+            {% for i, row in lineages.iterrows(): %}
+              <option value="{{ row["GISAID Accession ID"] }}">{{ row["Lineage"] }}</option>
+            {% endfor %} 
+          </select>
+        </div>
+
+        <div class="col-5 col-sm-4 col-md-3 col-lg-2 mt-4 pl-2 pr-0">
+          <select 
+            class="selectpicker show-tick form-control pb-0"
+            id="second_gisaid"
+            data-style="blue-btn-primary"
+            data-live-search="true"
+            data-dropdown-align-right="true"
+            data-window-padding="[56, 0, 0, 0]"
+            data-container="body"
+            title="Second variant"
+            onchange=""
+          >
+            {% for i, row in lineages.iterrows(): %}
+              <option value="{{ row["GISAID Accession ID"] }}">{{ row["Lineage"] }}</option>
+            {% endfor %} 
+          </select>
+        </div>
+
+      </div>
+      
+      <div class="row justify-content-center">
+        <div class="col-10 col-sm-8 col-md-6 col-lg-4 mt-4 pl-0 pr-0"> 
+          <button type="button" class="btn blue-btn-primary btn-block mt-0" id="submit">Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      known_alleles = {{ alleles|tojson }};
+
+      allele_hound = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.obj.whitespace('name'),
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        prefetch: {
+          url: "{{ url_for('static', filename='alleles/alleles.json') }}",
+          filter: function(list) {
+            return $.map(list, function(allele) {
+              return { name: allele};
+            });
+          }
+        },
+        limit: 10
+      });
+
+      allele_hound.initialize();
+
+      $('#allele-input').tagsinput({
+        tagClass: function(item) {
+          console.log(item);
+          console.log(known_alleles);
+          if (known_alleles.includes(item)) {
+            return 'label label-primary';
+          } else {
+            return 'label label-danger label-important';
+          }
+        }, typeaheadjs: {
+            name: 'allele_hound',
+            displayKey: 'name',
+            valueKey: 'name',
+            source: allele_hound.ttAdapter()
+        }
+      });
+    </script>
+
+    <script>
+      $('#submit').on('click', function() {
+        first_gisaid = $('#first_gisaid').val(); 
+        second_gisaid = $('#second_gisaid').val(); 
+        alleles = $('#allele-input').val(); 
+        if (first_gisaid == "None") {
+          return;
+        }
+
+        if (second_gisaid == "None") {
+          return;
+        }
+
+        if (alleles == "") {
+          return;
+        }
+
+        if (first_gisaid == second_gisaid) {
+          return;
+        }
+
+        url = "/comparison/" + first_gisaid + "/" + second_gisaid + "?hla_alleles=" + alleles;
+        window.location = url;
+      });
+    </script>
+
+    {% include 'footer.html' %}
+
+  </body>
+</html>

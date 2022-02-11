@@ -90,34 +90,11 @@ def download(gisaid_id):
 #     return None
 
 PROTEINS = [
-    "All",
-    "M",
-    "N",
-    "NS3",
-    "NSP12",
-    "NSP13",
-    "NSP14",
-    "NSP16",
-    "NSP2",
-    "NSP3",
-    "NSP4",
-    "NSP5",
-    "NSP8",
-    "NSP9",
-    "Spike",
-    "E",
-    "NS6",
-    "NS7a",
-    "NS7b",
-    "NS8",
-    "NS9c",
-    "NSP1",
-    "NSP10",
-    "NSP15",
-    "NSP6",
-    "NSP7",
-    "NS9b",
-    "NSP11"
+    "All", "Spike", "N", "M", "E", "NS3", "NS6",
+    "NS7a", "NS7b", "NS8", "NS9b", "NS9c",
+    "NSP1", "NSP2", "NSP3", "NSP4", "NSP5",
+    "NSP6", "NSP7", "NSP8", "NSP9", "NSP10",
+    "NSP11", "NSP12", "NSP13", "NSP14", "NSP15", "NSP16"
 ]
 
 def compare_variants(

@@ -24,9 +24,23 @@
         {% include 'sidebar_comparison.html' %}
         
         <div class="col-md-9 ml-sm-auto col-lg-10 px-md-4 mt-4">
-          <br><br>
-          <h2 id="Frequency">Frequency</h2>
-          <br>
+          <h1 id="Summary">Summary</h1>
+          <p>
+            We calculated the numbers of tightly binding peptides (IC<sub>50</sub> affinity &leq; 50 nM)
+            originating from the two selected variants for all entered alleles.
+            The total set of tight binders was calculated as a union of peptide sets
+            for each individual allele, i.e., a peptide with high binding affinity with 
+            two entered alleles was counted one time.
+          </p>
+          <p>
+            Aside from the binding affinity analysis, we also report worldwide frequencies of
+            possible haplotypes, composed of entered alleles. Haplotype frequency data were
+            imported from <a href="http://www.allelefrequencies.net" target="_blank">The Allele Frequency Net Database</a>.
+            {% if hla_class == "HLA-II" %}
+              Note that for HLA class II we present only HLA-DRB1/DQB1/DPB1 haplotype
+              frequencies since the vast majority of haplotype frequency data include only these genes.
+            {% endif %}
+          </p>
           <table class="table table-bordered table-striped">
             <thead>
               <tr>
@@ -64,10 +78,10 @@
           </table>  
 
           {% for protein in proteins %}
-            {% if protein == "all" %}
-              <h2 id={{ protein }}>All proteins</h2>
+            {% if protein == "All" %}
+              <h1 id={{ protein }}>All proteins</h1>
             {% else %}
-              <h2 id={{ protein }}>{{ protein[0]|upper }}{{ protein[1:] }} </h2>
+              <h1 id={{ protein }}>{{ protein[0]|upper }}{{ protein[1:] }} </h1>
             {% endif %}
             <a class="btn btn-link" style="float: right;" href="/comparison/{{ first_gisaid_id }}/{{ second_gisaid_id }}/download?hla_alleles={{hla_alleles}}&protein={{ protein }}" role="button" download>Export raw data to csv&nbsp;<i class="bi bi-download"></i></a>
 

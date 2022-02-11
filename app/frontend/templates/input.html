@@ -13,17 +13,25 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
   <script src="{{ url_for('static', filename='bootstrap-tagsinput/bootstrap-tagsinput.min.js') }}"></script>
   <script src="{{ url_for('static', filename='bootstrap-tagsinput/bootstrap-tagsinput-angular.min.js') }}"></script>
+
   
   <body style="position: relative;">
+    
+    <nav class="topmenu navbar fixed-top navbar-light bg-white d-flex justify-content-between">
+      <a class="navbar-brand" style="flex-grow: 1; flex-basis: 0;" href="/">T-CoV</a>
+    </nav>
+
     <div class="container-fluid">
       <div class="row justify-content-center">
         <h1>Input HLA alleles below</h1>
       </div>
+      <p style="background-color: yellow;">TODO: paragraph with help</p>
       <div class="row justify-content-center">
         <div class="col-10 col-sm-8 col-md-6 col-lg-4 mt-4 pl-0 pr-0"> 
           <input type="text" class="form-control" id="allele-input" placeholder="" aria-label="" aria-describedby="basic-addon2" data-role="tagsinput">
         </div>
       </div>
+      <p style="background-color: yellow;">E.g., HLA-A*01:01, HLA-B*07:02, ...</p>
 
       <div class="row justify-content-center">
         <div class="col-5 col-sm-4 col-md-3 col-lg-2 mt-4 pl-0 pr-2">

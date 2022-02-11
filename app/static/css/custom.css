@@ -60,7 +60,7 @@
 /* Input page */
 
 .blue-btn-primary {
-  color: #fff;
+  color: #fff !important;
   background-color: #007bff;
   border-color:#007bff
 }
@@ -93,6 +93,11 @@
 .blue-btn-primary:not(:disabled):not(.disabled):active:focus,
 .show > .blue-btn-primary.dropdown-toggle:focus {
   box-shadow:0 0 0 .2rem rgba(0, 123, 255, .5)
+}
+
+.label-primary {
+  color: #fff;
+  background-color: #007bff !important;
 }
 
 /* Footer */

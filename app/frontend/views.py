@@ -85,10 +85,6 @@ def download(gisaid_id):
         }
     )
     
-# @frontend.route("/comparison", methods=["GET"])
-# def show_request_page():
-#     return None
-
 PROTEINS = [
     "All", "Spike", "N", "M", "E", "NS3", "NS6",
     "NS7a", "NS7b", "NS8", "NS9b", "NS9c",
@@ -125,30 +121,6 @@ def compare_variants(
     
     return first_score, second_score
 
-# def compare_variants(
-#     first_gisaid_id, second_gisaid_id,
-#     hla_alleles, protein
-# ):
-#     gisaid_id_binders = {}
-#     for gisaid_id in [first_gisaid_id, second_gisaid_id]:
-#         _dict = pkl.load(open("{}/{}/tight_binders_{}.pkl".format(
-#             app.config["PIPELINE_PATH"], gisaid_id, protein.lower()
-#         ), "rb"))
-# 
-#         binders = set()
-#         for allele in hla_alleles:
-#             if not (allele in _dict):
-#                 continue
-#             
-#             binders.update(_dict[allele][-1])
-#         
-#         gisaid_id_binders[gisaid_id] = binders
-#     
-#     first_score = len(gisaid_id_binders[first_gisaid_id])
-#     second_score = len(gisaid_id_binders[second_gisaid_id])
-#     
-#     return first_score, second_score
-
 def hla_summary(
     first_gisaid_id, second_gisaid_id,
     hla_alleles, proteins
@@ -156,11 +128,11 @@ def hla_summary(
     summary = {}
     for protein in proteins:
         first_binders_dict = pkl.load(open("{}/{}/tight_binders.pkl".format(
-            app.config["PIPELINE_PATH"], first_gisaid_id, protein.lower()
+            app.config["PIPELINE_PATH"], first_gisaid_id
         ), "rb"))
         
         second_binders_dict = pkl.load(open("{}/{}/tight_binders.pkl".format(
-            app.config["PIPELINE_PATH"], second_gisaid_id, protein.lower()
+            app.config["PIPELINE_PATH"], second_gisaid_id
         ), "rb"))
 
         binder_analysis = {}
@@ -348,30 +320,27 @@ def download_comparison(first_gisaid_id, second_gisaid_id):
     df_peptides = []
     df_alleles = []
     for gisaid_id in [first_gisaid_id, second_gisaid_id]:
-        _dict = pkl.load(open("{}/{}/tight_binders_{}.pkl".format(
-            app.config["PIPELINE_PATH"], gisaid_id, protein
+        _dict = pkl.load(open("{}/{}/tight_binders.pkl".format(
+            app.config["PIPELINE_PATH"], gisaid_id
         ), "rb"))
 
         binders = set()
         for allele in hla_alleles:
-            if allele not in _dict:
-                continue
-
-            binders.update(_dict[allele][-1])
+            binders.update(_dict[protein][allele])
             
-            df_peptides.extend(_dict[allele][-1])
-            df_alleles.extend([allele] * len(_dict[allele][-1]))
+            df_peptides.extend(_dict[protein][allele])
+            df_alleles.extend([allele] * len(_dict[protein][allele]))
         
         gisaid_id_binders[gisaid_id] = binders
     
     common_binders = gisaid_id_binders[first_gisaid_id] & \
-    gisaid_id_binders[second_gisaid_id]
+        gisaid_id_binders[second_gisaid_id]
     
     disappeared_binders = gisaid_id_binders[first_gisaid_id] - \
-    gisaid_id_binders[second_gisaid_id]
+        gisaid_id_binders[second_gisaid_id]
     
     appeared_binders = gisaid_id_binders[second_gisaid_id] - \
-    gisaid_id_binders[first_gisaid_id]
+        gisaid_id_binders[first_gisaid_id]
     
     download_df = pd.DataFrame()
     download_df["Allele"] = df_alleles
@@ -409,7 +378,7 @@ def download_comparison(first_gisaid_id, second_gisaid_id):
         mimetype="text/csv",
         headers={
             "Content-disposition":
-            "attachment; filename={}vs{}_{}.csv".format(
+            "attachment; filename={}_vs_{}_{}.csv".format(
                 first_gisaid_id, second_gisaid_id,
                 protein
             )

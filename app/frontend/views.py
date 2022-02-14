@@ -162,8 +162,8 @@ def hla_summary(
     return summary
 
 HLA_I_order = ["HLA-A", "HLA-B", "HLA-C"]
-HLA_II_order = ["HLA-DR", "HLA-DQ", "HLA-DP"]
-def analise_haplotype(alleles, hla_class):
+HLA_II_order = ["HLA-DRB1", "HLA-DQB1", "HLA-DPB1"]
+def analyze_haplotype(alleles, hla_class):
     if hla_class == "HLA-I":
         hla_order = HLA_I_order 
     else:
@@ -172,14 +172,17 @@ def analise_haplotype(alleles, hla_class):
     hla_dict = {tp: [] for tp in hla_order}
     for allele in alleles:
         for tp in hla_order:
-            if allele.startswith(tp):
+            if (
+                (hla_class == "HLA-I" and allele.startswith(tp)) or
+                (hla_class == "HLA-II" and tp.split("-")[-1] in allele)
+            ):
                 hla_dict[tp].append(allele)
                 continue
     
     return hla_dict
 
-def analise_haplotype_frequency(alleles, hla_class):
-    hla_dict = analise_haplotype(alleles, hla_class)
+def analyze_haplotype_frequency(alleles, hla_class):
+    hla_dict = analyze_haplotype(alleles, hla_class)
 
     if hla_class == "HLA-I":
         hla_order = HLA_I_order 
@@ -194,7 +197,7 @@ def analise_haplotype_frequency(alleles, hla_class):
             hla_dict[tp].append("")
 
         hla_dict[tp] = list(set(hla_dict[tp]))
-
+    
     if hla_class == "HLA-I":
         frequency_df = pd.read_csv(
             "{}alleles/ABC_haplotype_region_frequency.tsv".format(app.config["STATIC_PATH"]),
@@ -230,7 +233,12 @@ def analise_haplotype_frequency(alleles, hla_class):
     haplotype = "/".join([tp.split("-")[-1] for tp in hla_order])
     haplotype_freq_df[haplotype] = ""
     for i, tp in enumerate(hla_order):
-        haplotype_freq_df[haplotype] += haplotype_freq_df[tp]
+        if len(haplotype_freq_df[tp]):
+            if not haplotype_freq_df[tp].iloc[0]:
+                haplotype_freq_df[haplotype] += "-"
+            else:
+                haplotype_freq_df[haplotype] += haplotype_freq_df[tp]
+
         if i < len(hla_order) - 1:
             haplotype_freq_df[haplotype] += "/"
     
@@ -278,7 +286,7 @@ def show_comparison_page(first_gisaid_id, second_gisaid_id):
         hla_class = "HLA-I"
         hla_alleles = hla_I_alleles
 
-    analise_haplotype_frequency(hla_alleles, hla_class)
+    analyze_haplotype_frequency(hla_alleles, hla_class)
 
     summary = hla_summary(
         first_gisaid_id, second_gisaid_id,
@@ -289,10 +297,9 @@ def show_comparison_page(first_gisaid_id, second_gisaid_id):
         "{}/lineages.csv".format(app.config["PIPELINE_PATH"])
     )
 
-    haplotype_frequency = analise_haplotype_frequency(
+    haplotype_frequency = analyze_haplotype_frequency(
         hla_alleles, hla_class
     )
-    print(haplotype_frequency)
     
     return render_template(
         "variant_comparison.html",
@@ -385,7 +392,7 @@ def download_comparison(first_gisaid_id, second_gisaid_id):
         }
     )
 
-@frontend.route("/input", methods=["GET"])
+@frontend.route("/haplotypes", methods=["GET"])
 def show_input_page():
     lineages = pd.read_csv(
         "{}/lineages.csv".format(app.config["PIPELINE_PATH"])
@@ -395,7 +402,7 @@ def show_input_page():
     ))
 
     return render_template(
-        "input.html",
+        "input_haplotypes.html",
         lineages=lineages,
         alleles=alleles
     )

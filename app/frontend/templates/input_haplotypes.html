@@ -23,18 +23,39 @@
 
     <div class="container-fluid">
       <div class="row justify-content-center">
-        <h1>Input HLA alleles below</h1>
+        <h1>Haplotype-level analysis</h1>
       </div>
-      <p style="background-color: yellow;">TODO: paragraph with help</p>
+      
+      <div class="row justify-content-center">
+        <div class="col-10 col-sm-8 col-md-6 col-lg-4 mt-4 pl-0 pr-0"> 
+          <p>
+            This tool allows one to compare viral peptide presentation
+            by a given list of HLA molecules between two SARS-CoV-2 variants.
+          </p>
+        </div>
+      </div>
+      
       <div class="row justify-content-center">
         <div class="col-10 col-sm-8 col-md-6 col-lg-4 mt-4 pl-0 pr-0"> 
           <input type="text" class="form-control" id="allele-input" placeholder="" aria-label="" aria-describedby="basic-addon2" data-role="tagsinput">
         </div>
       </div>
-      <p style="background-color: yellow;">E.g., HLA-A*01:01, HLA-B*07:02, ...</p>
+      
+      <div class="row justify-content-center">
+        <div class="col-10 col-sm-8 col-md-6 col-lg-4 mt-4 pl-0 pr-0"> 
+          <p class="text-secondary">
+            Input an abitrary comma-separated list of alleles, e.g.,
+            HLA-A*01:01, HLA-B*07:02, HLA-C*01:02, HLA-DRB1*01:01,
+            HLA-DPA1*01:03/DPB1*02:01,
+            HLA-DQA1*01:01/DQB1*02:01.
+            Note that it is not necessary to use all genes
+            (i.e., only two alleles could be specified).
+          </p>
+        </div>
+      </div>
 
       <div class="row justify-content-center">
-        <div class="col-5 col-sm-4 col-md-3 col-lg-2 mt-4 pl-0 pr-2">
+        <div class="col-5 col-sm-4 col-md-3 col-lg-2 mt-4 pl-0 pr-2 first-variant">
           <select 
             class="selectpicker show-tick form-control pb-0"
             id="first_gisaid"
@@ -42,7 +63,7 @@
             data-live-search="true"
             data-dropdown-align-left="true"
             data-window-padding="[56, 0, 0, 0]"
-            data-container="body"
+            data-container=".first-variant"
             title="First variant"
             onchange=""
           >
@@ -52,7 +73,7 @@
           </select>
         </div>
 
-        <div class="col-5 col-sm-4 col-md-3 col-lg-2 mt-4 pl-2 pr-0">
+        <div class="col-5 col-sm-4 col-md-3 col-lg-2 mt-4 pl-2 pr-0 second-variant">
           <select 
             class="selectpicker show-tick form-control pb-0"
             id="second_gisaid"
@@ -60,7 +81,7 @@
             data-live-search="true"
             data-dropdown-align-right="true"
             data-window-padding="[56, 0, 0, 0]"
-            data-container="body"
+            data-container=".second-variant"
             title="Second variant"
             onchange=""
           >

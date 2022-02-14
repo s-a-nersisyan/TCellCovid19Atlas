@@ -44,17 +44,17 @@
           <table class="table table-bordered table-striped">
             <thead>
               <tr>
-                <th>Haplotype {{ haplotype_frequency.index.name }}</th>
+                <th class="align-top">HLA-{{ haplotype_frequency.index.name }}</th>
                 {% for column in haplotype_frequency.columns %}
                   {% if column == "South and Central America" %}
                     {% set column = "S&C America" %}
                   {% endif %}
                   {% if column == "Weighted" %}
-                    <th>{{ column }}</th>
+                    <th class="align-top">{{ column }} mean</th>
                   {% elif column == "Mean"%}
-                    <th>{{ column }}</td>
+                    <th class="align-top">{{ column }}</td>
                   {% else %}
-                    <td>{{ column }}</td>
+                    <td class="align-top">{{ column }}</td>
                   {% endif %}
                 {% endfor %}
               </tr>

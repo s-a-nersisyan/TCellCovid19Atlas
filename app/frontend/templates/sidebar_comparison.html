@@ -4,12 +4,12 @@
       <ul class="nav nav-pills flex-column mt-4" id="navbar-protein">
         <li class="nav-item">
           <a class="nav-link" href="#Summary">
-            Frequency
+            Summary
           </a>
         </li>
         {% for protein in proteins %}
           <li class="nav-item">
-            {% if protein == "all" %}
+            {% if protein == "All" %}
               <a class="nav-link" href="#{{ protein }}">
                 All proteins
               </a>

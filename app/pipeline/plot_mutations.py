@@ -278,7 +278,7 @@ def allele_plot(gisaid_id, hla_class, allele):
     df_prc["Stronger binding"] = -df_prc["Stronger binding"]
     
     df_num["Sort"] = [PROTEIN_SIGNIFICANCE[row["Protein"]] for _, row in df_num.iterrows()]
-    df_num = df_num.sort_values("Sort", ascending="True")
+    df_num = df_num.sort_values("Sort", ascending=True)
     df_num = df_num.drop(columns=["Sort"])
     df_num = df_num.iloc[::-1] 
 
